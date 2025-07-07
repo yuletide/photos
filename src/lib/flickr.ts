@@ -64,6 +64,6 @@ export const getPhotosInSet = unstable_cache(
     });
     return data.photoset.photo;
   },
-  ['flickr-photos-in-set', photosetId],
+  ['flickr-photos-in-set'],
   { revalidate: 3600 }, // Revalidate every hour
 );
