@@ -55,15 +55,16 @@ export const getPhotoSets = unstable_cache(
   { revalidate: 3600 }, // Revalidate every hour
 );
 
-export const getPhotosInSet = unstable_cache(
-  async (photosetId: string) => {
-    const data = await callFlickrApi<FlickrPhotosetPhotosResponse>({
-      method: 'flickr.photosets.getPhotos',
-      photoset_id: photosetId,
-      extras: 'url_m,url_l,url_o,description',
-    });
-    return data.photoset.photo;
-  },
-  ['flickr-photos-in-set'],
-  { revalidate: 3600 }, // Revalidate every hour
-);
+export const getPhotosInSet = (photosetId: string) =>
+  unstable_cache(
+    async () => {
+      const data = await callFlickrApi<FlickrPhotosetPhotosResponse>({
+        method: 'flickr.photosets.getPhotos',
+        photoset_id: photosetId,
+        extras: 'url_m,url_l,url_o,description',
+      });
+      return data.photoset.photo;
+    },
+    ['flickr-photos-in-set', photosetId],
+    { revalidate: 3600 }, // Revalidate every hour
+  )();
