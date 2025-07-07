@@ -1,10 +1,11 @@
 import React from 'react';
 import { Grid, Star, MapPin, Music } from 'lucide-react';
+import type { GalleryType } from '../types';
 
 // Homepage Component
 const Homepage = () => {
   // Mock data for demonstration
-  const galleryTypes = [
+  const galleryTypes: GalleryType[] = [
     {
       id: 'trips',
       title: 'Travel Photos',
