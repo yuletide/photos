@@ -1,103 +1,122 @@
-import Image from "next/image";
+import { MapPin, Music, Star } from "lucide-react";
 
-export default function Home() {
+// Homepage Component
+const Home = () => {
+  // Mock data for demonstration
+  const galleryTypes = [
+    {
+      id: 'trips',
+      title: 'Travel Photos',
+      description: 'Adventures from around the world',
+      icon: MapPin,
+      count: 127,
+      color: 'bg-blue-100 text-blue-600'
+    },
+    {
+      id: 'concerts',
+      title: 'Concert Photography',
+      description: 'Live music moments captured',
+      icon: Music,
+      count: 89,
+      color: 'bg-purple-100 text-purple-600'
+    },
+    {
+      id: 'best-of',
+      title: 'Best Of Collection',
+      description: 'Curated highlights from all galleries',
+      icon: Star,
+      count: 42,
+      color: 'bg-yellow-100 text-yellow-600'
+    }
+  ];
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="space-y-12">
+      {/* Hero Section */}
+      <div className="text-center">
+        <h2 className="text-4xl font-bold text-gray-900 mb-4">
+          Welcome to My Photo Gallery
+        </h2>
+        <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          A collection of moments captured through my lens. From travel adventures to 
+          concert experiences, explore the world through photography.
+        </p>
+      </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      {/* Gallery Types Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {galleryTypes.map((gallery) => {
+          const IconComponent = gallery.icon;
+          return (
+            <div
+              key={gallery.id}
+              className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow cursor-pointer"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className={`p-3 rounded-lg ${gallery.color}`}>
+                  <IconComponent className="h-6 w-6" />
+                </div>
+                <span className="text-sm font-medium text-gray-500">
+                  {gallery.count} photos
+                </span>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                {gallery.title}
+              </h3>
+              <p className="text-gray-600 text-sm">
+                {gallery.description}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Featured Photos Preview */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-lg font-semibold text-gray-900">Recently Added</h3>
+          <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+            View All →
+          </button>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        
+        {/* Photo Grid Preview */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div
+              key={i}
+              className="aspect-square bg-gray-200 rounded-lg flex items-center justify-center hover:bg-gray-300 transition-colors cursor-pointer"
+            >
+              <Grid className="h-8 w-8 text-gray-400" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Stats Section */}
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-8">
+        <div className="text-center">
+          <h3 className="text-2xl font-bold text-gray-900 mb-4">
+            Gallery Statistics
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+              <div className="text-3xl font-bold text-blue-600">258</div>
+              <div className="text-sm text-gray-600">Total Photos</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-purple-600">23</div>
+              <div className="text-sm text-gray-600">Collections</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-yellow-600">12</div>
+              <div className="text-sm text-gray-600">Countries Visited</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default Home;
