@@ -32,6 +32,8 @@ export interface FlickrPhotoset {
   };
   primary_photo_extras?: {
     url_m: string;
+    height_m: string;
+    width_m: string;
   };
 }
 

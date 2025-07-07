@@ -1,15 +1,31 @@
-import { Grid } from 'lucide-react';
+import { getPhotoSets } from '@/lib/flickr';
+import Image from 'next/image';
+import Link from 'next/link';
 
-// Homepage Component
-const Home = () => {
+const Home = async () => {
+  const photoSets = await getPhotoSets();
+
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-      {Array.from({ length: 16 }).map((_, i) => (
-        <div
-          key={i}
-          className="aspect-square bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700/80 transition-colors cursor-pointer"
-        >
-          <Grid className="h-8 w-8 text-gray-500" />
+    <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
+      {photoSets.map((set) => (
+        <div key={set.id} className="break-inside-avoid">
+          <Link href={`/sets/${set.id}`} className="block group">
+            {set.primary_photo_extras?.url_m && (
+              <Image
+                src={set.primary_photo_extras.url_m}
+                alt={set.title._content}
+                width={Number(set.primary_photo_extras.width_m)}
+                height={Number(set.primary_photo_extras.height_m)}
+                className="w-full h-auto rounded-lg group-hover:opacity-80 transition-opacity"
+              />
+            )}
+            <div className="mt-2">
+              <h2 className="font-medium text-gray-200 group-hover:text-white transition-colors">
+                {set.title._content}
+              </h2>
+              <p className="text-sm text-gray-500">{set.photos} photos</p>
+            </div>
+          </Link>
         </div>
       ))}
     </div>
