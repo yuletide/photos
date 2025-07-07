@@ -1,4 +1,4 @@
-import { MapPin, Music, Star } from "lucide-react";
+import { Grid, MapPin, Music, Star } from "lucide-react";
 
 // Homepage Component
 const Home = () => {
