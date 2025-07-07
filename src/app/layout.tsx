@@ -1,9 +1,11 @@
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 import { Camera } from "lucide-react";
 import { ReactNode } from "react";
 import "./globals.css";
 
 const Layout = ({ children }: { children: ReactNode }) => (
-  <html lang="en">
+  <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
     <body className="min-h-screen bg-gray-50">
     <header className="bg-white shadow-sm border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
