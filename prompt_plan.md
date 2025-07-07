@@ -11,6 +11,7 @@ Based on the specification, this project will be built as a modern Next.js appli
 **Objective**: Create the basic Next.js project structure with essential dependencies and configuration.
 
 **Prompt for Implementation**:
+
 ```
 Set up a new Next.js 14 project with the following requirements:
 - Use TypeScript for type safety
@@ -31,6 +32,7 @@ Set up a new Next.js 14 project with the following requirements:
 **Objective**: Create a robust service layer for interacting with the Flickr API.
 
 **Prompt for Implementation**:
+
 ```
 Create a Flickr API integration service with the following features:
 - TypeScript interfaces for Flickr API responses (albums, photos, metadata)
@@ -50,6 +52,7 @@ Create a Flickr API integration service with the following features:
 **Objective**: Define the data structures and TypeScript types for the gallery system.
 
 **Prompt for Implementation**:
+
 ```
 Create comprehensive TypeScript types and data models for:
 - Gallery types (trip, concert, best-of)
@@ -69,6 +72,7 @@ Create comprehensive TypeScript types and data models for:
 **Objective**: Implement the core logic for fetching and organizing gallery data from Flickr.
 
 **Prompt for Implementation**:
+
 ```
 Build the gallery data processing system:
 - Function to fetch all tagged albums from Flickr
@@ -89,6 +93,7 @@ Build the gallery data processing system:
 **Objective**: Create the main gallery grid component with responsive layout.
 
 **Prompt for Implementation**:
+
 ```
 Create a responsive photo gallery grid component:
 - Grid layout that adapts to different screen sizes (4/3/2 columns)
@@ -109,6 +114,7 @@ Create a responsive photo gallery grid component:
 **Objective**: Implement a full-screen photo viewer with navigation.
 
 **Prompt for Implementation**:
+
 ```
 Build a photo viewer modal with:
 - Full-screen modal overlay with photo display
@@ -130,6 +136,7 @@ Build a photo viewer modal with:
 **Objective**: Create navigation between different gallery types and filtering options.
 
 **Prompt for Implementation**:
+
 ```
 Implement gallery navigation system:
 - Navigation menu for different gallery types (trips, concerts, best-of)
@@ -150,6 +157,7 @@ Implement gallery navigation system:
 **Objective**: Create the main pages that tie everything together.
 
 **Prompt for Implementation**:
+
 ```
 Build the main application pages:
 - Homepage with gallery overview and featured photos
@@ -170,6 +178,7 @@ Build the main application pages:
 **Objective**: Implement lazy loading, caching, and performance improvements.
 
 **Prompt for Implementation**:
+
 ```
 Optimize the application for performance:
 - Implement proper lazy loading for images and components
@@ -190,6 +199,7 @@ Optimize the application for performance:
 **Objective**: Add simple analytics to track photo and gallery popularity.
 
 **Prompt for Implementation**:
+
 ```
 Implement basic analytics system:
 - Simple view tracking for individual photos
@@ -210,6 +220,7 @@ Implement basic analytics system:
 **Objective**: Ensure excellent mobile experience and add progressive web app features.
 
 **Prompt for Implementation**:
+
 ```
 Enhance mobile experience:
 - Fine-tune responsive design for all components
@@ -231,6 +242,7 @@ Enhance mobile experience:
 **Objective**: Final optimizations, testing, and deployment setup.
 
 **Prompt for Implementation**:
+
 ```
 Complete the application with final polish:
 - Comprehensive error handling throughout the application
@@ -250,6 +262,7 @@ Complete the application with final polish:
 ## Development Workflow
 
 ### For Each Step:
+
 1. **Planning**: Review the prompt and understand the requirements
 2. **Implementation**: Use the provided prompt with your chosen AI coding tool
 3. **Testing**: Verify the implementation meets the requirements
@@ -257,12 +270,14 @@ Complete the application with final polish:
 5. **Iteration**: Refine based on testing results
 
 ### Recommended Tools:
+
 - **Primary**: Claude.ai for iterative development
 - **Alternative**: Aider for automated coding
 - **Testing**: Jest for unit tests, Cypress for e2e tests
 - **Deployment**: Vercel for seamless Next.js deployment
 
 ### Branch Strategy:
+
 - `main`: Production-ready code
 - `develop`: Integration branch
 - `feature/*`: Individual feature branches
@@ -271,6 +286,7 @@ Complete the application with final polish:
 ## Quality Assurance
 
 ### Code Quality:
+
 - TypeScript for type safety
 - ESLint and Prettier for code consistency
 - Unit tests for utility functions
@@ -278,12 +294,14 @@ Complete the application with final polish:
 - E2E tests for critical user flows
 
 ### Performance Targets:
+
 - Initial page load < 3 seconds
 - Image lazy loading working properly
 - Core Web Vitals in "Good" range
 - Mobile performance optimized
 
 ### Accessibility:
+
 - WCAG 2.1 AA compliance
 - Keyboard navigation support
 - Screen reader compatibility
