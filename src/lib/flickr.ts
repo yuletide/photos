@@ -62,6 +62,7 @@ export const getPhotosInSet = (photosetId: string) =>
         method: 'flickr.photosets.getPhotos',
         photoset_id: photosetId,
         extras: 'url_m,url_l,url_o,description',
+        user_id: USER_ID,
       });
       return data.photoset.photo;
     },
