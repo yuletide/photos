@@ -18,7 +18,6 @@ const callFlickrApi = async <T>(params: Record<string, string>): Promise<T> => {
   const allParams = {
     ...params,
     api_key: API_KEY,
-    user_id: USER_ID,
     format: 'json',
     nojsoncallback: '1',
   };
@@ -48,6 +47,7 @@ export const getPhotoSets = unstable_cache(
     const data = await callFlickrApi<FlickrPhotosetsResponse>({
       method: 'flickr.photosets.getList',
       primary_photo_extras: 'url_m',
+      user_id: USER_ID,
     });
     return data.photosets.photoset;
   },
@@ -64,6 +64,6 @@ export const getPhotosInSet = unstable_cache(
     });
     return data.photoset.photo;
   },
-  ['flickr-photos-in-set'],
+  ['flickr-photos-in-set', photosetId],
   { revalidate: 3600 }, // Revalidate every hour
 );
