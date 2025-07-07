@@ -14,9 +14,7 @@ if (!API_KEY || !USER_ID) {
   );
 }
 
-const callFlickrApi = async <T>(
-  params: Record<string, string>,
-): Promise<T> => {
+const callFlickrApi = async <T>(params: Record<string, string>): Promise<T> => {
   const allParams = {
     ...params,
     api_key: API_KEY,
