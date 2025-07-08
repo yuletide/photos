@@ -1,5 +1,5 @@
 import { unstable_cache } from 'next/cache';
-import Flickr = require('flickr-sdk');
+const Flickr = require('flickr-sdk');
 import { FlickrPhoto, FlickrPhotoset } from '@/types/flickr';
 
 const API_KEY = process.env.FLICKR_API_KEY;

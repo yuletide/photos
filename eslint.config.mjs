@@ -15,6 +15,7 @@ const eslintConfig = [
     files: ['src/lib/flickr.ts'],
     rules: {
       '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/no-var-requires': 'off',
     },
   },
 ];
