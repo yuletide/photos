@@ -1,12 +1,9 @@
 import { unstable_cache } from 'next/cache';
-import {
-  FlickrPhotosetPhotosResponse,
-  FlickrPhotosetsResponse,
-} from '@/types/flickr';
+import Flickr from 'flickr-sdk';
+import { FlickrPhoto, FlickrPhotoset } from '@/types/flickr';
 
 const API_KEY = process.env.FLICKR_API_KEY;
 const USER_ID = process.env.FLICKR_USER_ID;
-const BASE_URL = 'https://api.flickr.com/services/rest/';
 
 if (!API_KEY || !USER_ID) {
   throw new Error(
@@ -14,42 +11,15 @@ if (!API_KEY || !USER_ID) {
   );
 }
 
-const callFlickrApi = async <T>(params: Record<string, string>): Promise<T> => {
-  const allParams = {
-    ...params,
-    api_key: API_KEY,
-    format: 'json',
-    nojsoncallback: '1',
-  };
-
-  const url = new URL(BASE_URL);
-  Object.entries(allParams).forEach(([key, value]) =>
-    url.searchParams.append(key, value),
-  );
-
-  const response = await fetch(url.toString());
-
-  if (!response.ok) {
-    throw new Error(`Flickr API error: ${response.statusText}`);
-  }
-
-  const data = await response.json();
-
-  if (data.stat !== 'ok') {
-    throw new Error(`Flickr API error: ${data.message}`);
-  }
-
-  return data;
-};
+const flickr = new Flickr(API_KEY);
 
 export const getPhotoSets = unstable_cache(
-  async () => {
-    const data = await callFlickrApi<FlickrPhotosetsResponse>({
-      method: 'flickr.photosets.getList',
-      primary_photo_extras: 'url_m',
+  async (): Promise<FlickrPhotoset[]> => {
+    const res = await flickr.photosets.getList({
       user_id: USER_ID,
+      primary_photo_extras: 'url_m',
     });
-    return data.photosets.photoset;
+    return res.body.photosets.photoset;
   },
   ['flickr-photosets'],
   { revalidate: 3600 }, // Revalidate every hour
@@ -57,14 +27,13 @@ export const getPhotoSets = unstable_cache(
 
 export const getPhotosInSet = (photosetId: string) =>
   unstable_cache(
-    async () => {
-      const data = await callFlickrApi<FlickrPhotosetPhotosResponse>({
-        method: 'flickr.photosets.getPhotos',
+    async (): Promise<FlickrPhoto[]> => {
+      const res = await flickr.photosets.getPhotos({
         photoset_id: photosetId,
-        extras: 'url_m,url_l,url_o,description',
         user_id: USER_ID,
+        extras: 'url_m,url_l,url_o,description',
       });
-      return data.photoset.photo;
+      return res.body.photoset.photo;
     },
     ['flickr-photos-in-set', photosetId],
     { revalidate: 3600 }, // Revalidate every hour
