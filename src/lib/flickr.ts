@@ -18,6 +18,8 @@ export const getPhotoSets = unstable_cache(
     const res = await flickr.photosets.getList({
       user_id: USER_ID,
       primary_photo_extras: 'url_m',
+      format: 'json',
+      nojsoncallback: 1,
     });
     return res.body.photosets.photoset;
   },
@@ -32,6 +34,8 @@ export const getPhotosInSet = (photosetId: string) =>
         photoset_id: photosetId,
         user_id: USER_ID,
         extras: 'url_m,url_l,url_o,description',
+        format: 'json',
+        nojsoncallback: 1,
       });
       return res.body.photoset.photo;
     },
