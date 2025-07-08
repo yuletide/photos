@@ -1,20 +1,23 @@
 import { unstable_cache } from 'next/cache';
+import { createFlickr } from 'flickr-sdk';
 import { FlickrPhoto, FlickrPhotoset } from '@/types/flickr';
-import flickr from './flickr-sdk-wrapper';
 
+const API_KEY = process.env.FLICKR_API_KEY;
 const USER_ID = process.env.FLICKR_USER_ID;
 
-if (!USER_ID) {
-  throw new Error('Flickr User ID must be provided in environment variables.');
+if (!API_KEY || !USER_ID) {
+  throw new Error(
+    'Flickr API key and User ID must be provided in environment variables.',
+  );
 }
+
+const { flickr } = createFlickr(API_KEY);
 
 export const getPhotoSets = unstable_cache(
   async (): Promise<FlickrPhotoset[]> => {
     const res = await flickr.photosets.getList({
       user_id: USER_ID,
       primary_photo_extras: 'url_m',
-      format: 'json',
-      nojsoncallback: 1,
     });
     return res.body.photosets.photoset;
   },
@@ -29,8 +32,6 @@ export const getPhotosInSet = (photosetId: string) =>
         photoset_id: photosetId,
         user_id: USER_ID,
         extras: 'url_m,url_l,url_o,description',
-        format: 'json',
-        nojsoncallback: 1,
       });
       return res.body.photoset.photo;
     },
