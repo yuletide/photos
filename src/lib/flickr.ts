@@ -1,5 +1,5 @@
 import { unstable_cache } from 'next/cache';
-const Flickr = require('flickr-sdk');
+const FlickrModule = require('flickr-sdk');
 import { FlickrPhoto, FlickrPhotoset } from '@/types/flickr';
 
 const API_KEY = process.env.FLICKR_API_KEY;
@@ -11,6 +11,7 @@ if (!API_KEY || !USER_ID) {
   );
 }
 
+const Flickr = FlickrModule.default || FlickrModule;
 const flickr = new Flickr(API_KEY);
 
 export const getPhotoSets = unstable_cache(
