@@ -21,9 +21,10 @@ export async function GET(
   try {
     const res = await flickr('flickr.photosets.getPhotos', {
       photoset_id: photosetId,
-      user_id: USER_ID,
+      user_id: USER_ID!,
       extras: 'url_m,url_l,url_o,description',
     });
+    console.log(res);
     return NextResponse.json(res.photoset.photo);
   } catch (error) {
     console.error(error);
