@@ -1,0 +1,1289 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+public/
+  file.svg
+  globe.svg
+  next.svg
+  vercel.svg
+  window.svg
+src/
+  app/
+    globals.css
+    layout.tsx
+    page.tsx
+  lib/
+    flickr.ts
+  types/
+    flickr.ts
+.gitignore
+.node-version
+.prettierrc.json
+eslint.config.mjs
+next.config.ts
+package.json
+postcss.config.mjs
+prompt_plan.md
+README.md
+spec.md
+todo.md
+tsconfig.json
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="public/file.svg">
+<svg fill="none" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M14.5 13.5V5.41a1 1 0 0 0-.3-.7L9.8.29A1 1 0 0 0 9.08 0H1.5v13.5A2.5 2.5 0 0 0 4 16h8a2.5 2.5 0 0 0 2.5-2.5m-1.5 0v-7H8v-5H3v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1M9.5 5V2.12L12.38 5zM5.13 5h-.62v1.25h2.12V5zm-.62 3h7.12v1.25H4.5zm.62 3h-.62v1.25h7.12V11z" clip-rule="evenodd" fill="#666" fill-rule="evenodd"/></svg>
+</file>
+
+<file path="public/globe.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><g clip-path="url(#a)"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.27 14.1a6.5 6.5 0 0 0 3.67-3.45q-1.24.21-2.7.34-.31 1.83-.97 3.1M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m.48-1.52a7 7 0 0 1-.96 0H7.5a4 4 0 0 1-.84-1.32q-.38-.89-.63-2.08a40 40 0 0 0 3.92 0q-.25 1.2-.63 2.08a4 4 0 0 1-.84 1.31zm2.94-4.76q1.66-.15 2.95-.43a7 7 0 0 0 0-2.58q-1.3-.27-2.95-.43a18 18 0 0 1 0 3.44m-1.27-3.54a17 17 0 0 1 0 3.64 39 39 0 0 1-4.3 0 17 17 0 0 1 0-3.64 39 39 0 0 1 4.3 0m1.1-1.17q1.45.13 2.69.34a6.5 6.5 0 0 0-3.67-3.44q.65 1.26.98 3.1M8.48 1.5l.01.02q.41.37.84 1.31.38.89.63 2.08a40 40 0 0 0-3.92 0q.25-1.2.63-2.08a4 4 0 0 1 .85-1.32 7 7 0 0 1 .96 0m-2.75.4a6.5 6.5 0 0 0-3.67 3.44 29 29 0 0 1 2.7-.34q.31-1.83.97-3.1M4.58 6.28q-1.66.16-2.95.43a7 7 0 0 0 0 2.58q1.3.27 2.95.43a18 18 0 0 1 0-3.44m.17 4.71q-1.45-.12-2.69-.34a6.5 6.5 0 0 0 3.67 3.44q-.65-1.27-.98-3.1" fill="#666"/></g><defs><clipPath id="a"><path fill="#fff" d="M0 0h16v16H0z"/></clipPath></defs></svg>
+</file>
+
+<file path="public/next.svg">
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 394 80"><path fill="#000" d="M262 0h68.5v12.7h-27.2v66.6h-13.6V12.7H262V0ZM149 0v12.7H94v20.4h44.3v12.6H94v21h55v12.6H80.5V0h68.7zm34.3 0h-17.8l63.8 79.4h17.9l-32-39.7 32-39.6h-17.9l-23 28.6-23-28.6zm18.3 56.7-9-11-27.1 33.7h17.8l18.3-22.7z"/><path fill="#000" d="M81 79.3 17 0H0v79.3h13.6V17l50.2 62.3H81Zm252.6-.4c-1 0-1.8-.4-2.5-1s-1.1-1.6-1.1-2.6.3-1.8 1-2.5 1.6-1 2.6-1 1.8.3 2.5 1a3.4 3.4 0 0 1 .6 4.3 3.7 3.7 0 0 1-3 1.8zm23.2-33.5h6v23.3c0 2.1-.4 4-1.3 5.5a9.1 9.1 0 0 1-3.8 3.5c-1.6.8-3.5 1.3-5.7 1.3-2 0-3.7-.4-5.3-1s-2.8-1.8-3.7-3.2c-.9-1.3-1.4-3-1.4-5h6c.1.8.3 1.6.7 2.2s1 1.2 1.6 1.5c.7.4 1.5.5 2.4.5 1 0 1.8-.2 2.4-.6a4 4 0 0 0 1.6-1.8c.3-.8.5-1.8.5-3V45.5zm30.9 9.1a4.4 4.4 0 0 0-2-3.3 7.5 7.5 0 0 0-4.3-1.1c-1.3 0-2.4.2-3.3.5-.9.4-1.6 1-2 1.6a3.5 3.5 0 0 0-.3 4c.3.5.7.9 1.3 1.2l1.8 1 2 .5 3.2.8c1.3.3 2.5.7 3.7 1.2a13 13 0 0 1 3.2 1.8 8.1 8.1 0 0 1 3 6.5c0 2-.5 3.7-1.5 5.1a10 10 0 0 1-4.4 3.5c-1.8.8-4.1 1.2-6.8 1.2-2.6 0-4.9-.4-6.8-1.2-2-.8-3.4-2-4.5-3.5a10 10 0 0 1-1.7-5.6h6a5 5 0 0 0 3.5 4.6c1 .4 2.2.6 3.4.6 1.3 0 2.5-.2 3.5-.6 1-.4 1.8-1 2.4-1.7a4 4 0 0 0 .8-2.4c0-.9-.2-1.6-.7-2.2a11 11 0 0 0-2.1-1.4l-3.2-1-3.8-1c-2.8-.7-5-1.7-6.6-3.2a7.2 7.2 0 0 1-2.4-5.7 8 8 0 0 1 1.7-5 10 10 0 0 1 4.3-3.5c2-.8 4-1.2 6.4-1.2 2.3 0 4.4.4 6.2 1.2 1.8.8 3.2 2 4.3 3.4 1 1.4 1.5 3 1.5 5h-5.8z"/></svg>
+</file>
+
+<file path="public/vercel.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1155 1000"><path d="m577.3 0 577.4 1000H0z" fill="#fff"/></svg>
+</file>
+
+<file path="public/window.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M1.5 2.5h13v10a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1zM0 1h16v11.5a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 0 12.5zm3.75 4.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5M7 4.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0m1.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5" fill="#666"/></svg>
+</file>
+
+<file path="src/types/flickr.ts">
+export interface FlickrPhoto {
+  id: string;
+  secret: string;
+  server: string;
+  farm: number;
+  title: string;
+  isprimary: string;
+  url_o?: string; // Original photo URL
+  height_o?: number;
+  width_o?: number;
+  url_l?: string; // Large photo URL
+  height_l?: number;
+  width_l?: number;
+  url_m?: string; // Medium photo URL
+  height_m?: number;
+  width_m?: number;
+}
+
+export interface FlickrPhotoset {
+  id: string;
+  primary: string;
+  secret: string;
+  server: string;
+  farm: number;
+  photos: number;
+  videos: number;
+  title: {
+    _content: string;
+  };
+  description: {
+    _content: string;
+  };
+  primary_photo_extras?: {
+    url_m: string;
+  };
+}
+
+export interface FlickrPhotosetPhotosResponse {
+  photoset: {
+    id: string;
+    primary: string;
+    owner: string;
+    ownername: string;
+    photo: FlickrPhoto[];
+    page: number;
+    per_page: number;
+    perpage: number;
+    pages: number;
+    title: string;
+    total: number;
+  };
+  stat: string;
+}
+
+export interface FlickrPhotosetsResponse {
+  photosets: {
+    page: number;
+    pages: number;
+    perpage: number;
+    total: number;
+    photoset: FlickrPhotoset[];
+  };
+  stat: string;
+}
+</file>
+
+<file path=".node-version">
+22.2.0
+</file>
+
+<file path="postcss.config.mjs">
+const config = {
+  plugins: ["@tailwindcss/postcss"],
+};
+
+export default config;
+</file>
+
+<file path="README.md">
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+## Getting Started
+
+First, run the development server:
+
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+</file>
+
+<file path="tsconfig.json">
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}
+</file>
+
+<file path=".gitignore">
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+.aider*
+</file>
+
+<file path=".prettierrc.json">
+{
+  "semi": true,
+  "tabWidth": 2,
+  "printWidth": 80,
+  "singleQuote": true,
+  "trailingComma": "all",
+  "jsxSingleQuote": false,
+  "bracketSpacing": true
+}
+</file>
+
+<file path="next.config.ts">
+import type { NextConfig } from 'next';
+
+const nextConfig: NextConfig = {
+  /* config options here */
+};
+
+export default nextConfig;
+</file>
+
+<file path="prompt_plan.md">
+# Photo Gallery Implementation Plan
+
+## Project Blueprint
+
+Based on the specification, this project will be built as a modern Next.js application with Flickr integration, deployed on Vercel. The implementation follows a test-driven, incremental approach with each step building upon the previous one.
+
+## Implementation Steps
+
+### Step 1: Project Foundation and Setup
+
+**Objective**: Create the basic Next.js project structure with essential dependencies and configuration.
+
+**Prompt for Implementation**:
+
+```
+Set up a new Next.js 14 project with the following requirements:
+- Use TypeScript for type safety
+- Install and configure Tailwind CSS for styling
+- Set up ESLint and Prettier for code quality
+- Create a basic project structure with folders for components, lib, types, and pages
+- Configure environment variables for Flickr API integration
+- Set up a basic layout component with header and footer
+- Create a simple homepage with placeholder content
+- Ensure the project builds and runs successfully
+- Include proper TypeScript types for the project structure
+```
+
+**Testing**: Verify the development server starts, basic layout renders, and Tailwind styles are applied.
+
+### Step 2: Flickr API Integration Layer
+
+**Objective**: Create a robust service layer for interacting with the Flickr API.
+
+**Prompt for Implementation**:
+
+```
+Create a Flickr API integration service with the following features:
+- TypeScript interfaces for Flickr API responses (albums, photos, metadata)
+- Service class with methods for: fetching albums, fetching photos from albums, getting photo details
+- Error handling for API failures and rate limiting
+- Caching mechanism to avoid redundant API calls
+- Configuration for API key and common parameters
+- Helper functions for extracting tagged albums and photos
+- Unit tests for the service methods
+- Mock data for development and testing
+```
+
+**Testing**: Test API calls with mock data, verify error handling, and ensure caching works properly.
+
+### Step 3: Data Models and Types
+
+**Objective**: Define the data structures and TypeScript types for the gallery system.
+
+**Prompt for Implementation**:
+
+```
+Create comprehensive TypeScript types and data models for:
+- Gallery types (trip, concert, best-of)
+- Photo metadata (title, description, tags, URLs, dates)
+- Album information (title, description, photo count)
+- Gallery configuration (which albums to display, categorization)
+- API response types for all Flickr endpoints
+- Internal data structures for the gallery application
+- Utility functions for data transformation between Flickr API and internal models
+- Validation schemas for API responses
+```
+
+**Testing**: Ensure type safety throughout the application and validate data transformations.
+
+### Step 4: Gallery Data Fetching and Processing
+
+**Objective**: Implement the core logic for fetching and organizing gallery data from Flickr.
+
+**Prompt for Implementation**:
+
+```
+Build the gallery data processing system:
+- Function to fetch all tagged albums from Flickr
+- Logic to categorize albums by type (trip, concert, best-of)
+- Data transformation from Flickr format to internal gallery format
+- Filtering logic based on tags and manual curation rules
+- Photo selection and organization within galleries
+- Caching strategy for gallery data
+- Error handling for missing or invalid data
+- Mock data generators for development
+- Unit tests for data processing functions
+```
+
+**Testing**: Verify correct album categorization, photo filtering, and data structure transformation.
+
+### Step 5: Basic Gallery Grid Component
+
+**Objective**: Create the main gallery grid component with responsive layout.
+
+**Prompt for Implementation**:
+
+```
+Create a responsive photo gallery grid component:
+- Grid layout that adapts to different screen sizes (4/3/2 columns)
+- Photo thumbnail component with lazy loading
+- Responsive image sizing using Next.js Image component
+- Hover effects and transitions for better UX
+- Loading states for images
+- Error handling for failed image loads
+- Basic accessibility features (alt text, keyboard navigation)
+- Mobile-optimized touch interactions
+- Props interface for gallery data
+```
+
+**Testing**: Test responsive behavior, image loading, and user interactions across devices.
+
+### Step 6: Photo Viewer Modal
+
+**Objective**: Implement a full-screen photo viewer with navigation.
+
+**Prompt for Implementation**:
+
+```
+Build a photo viewer modal with:
+- Full-screen modal overlay with photo display
+- Navigation between photos (next/previous)
+- Keyboard navigation (arrow keys, escape to close)
+- Touch/swipe gestures for mobile
+- Photo metadata display (title, date, EXIF if available)
+- Smooth transitions and animations
+- Proper focus management for accessibility
+- Preloading of next/previous images
+- Responsive sizing for different screen orientations
+- Close button and click-outside-to-close functionality
+```
+
+**Testing**: Verify modal behavior, navigation, and responsive design across devices.
+
+### Step 7: Gallery Navigation and Filtering
+
+**Objective**: Create navigation between different gallery types and filtering options.
+
+**Prompt for Implementation**:
+
+```
+Implement gallery navigation system:
+- Navigation menu for different gallery types (trips, concerts, best-of)
+- Active state management for current gallery
+- Smooth transitions between gallery views
+- Photo count indicators for each gallery
+- Search/filter functionality for tags (if implementing cross-gallery tagging)
+- URL routing for different gallery views
+- Breadcrumb navigation for better UX
+- Mobile-friendly navigation menu
+- Loading states during gallery transitions
+```
+
+**Testing**: Ensure smooth navigation, correct active states, and proper URL routing.
+
+### Step 8: Homepage and Gallery Pages
+
+**Objective**: Create the main pages that tie everything together.
+
+**Prompt for Implementation**:
+
+```
+Build the main application pages:
+- Homepage with gallery overview and featured photos
+- Individual gallery pages for each type
+- Proper page metadata and SEO optimization
+- Open Graph tags for social sharing
+- Structured data for photo galleries
+- Error pages for missing galleries or photos
+- Loading states and skeleton screens
+- Proper heading hierarchy and accessibility
+- Integration with the gallery grid and photo viewer components
+```
+
+**Testing**: Verify page routing, SEO metadata, and proper component integration.
+
+### Step 9: Performance Optimization
+
+**Objective**: Implement lazy loading, caching, and performance improvements.
+
+**Prompt for Implementation**:
+
+```
+Optimize the application for performance:
+- Implement proper lazy loading for images and components
+- Set up Next.js Image optimization with proper sizing
+- Configure caching headers and service worker if needed
+- Implement intersection observer for lazy loading
+- Optimize bundle size by code splitting
+- Add performance monitoring and Core Web Vitals tracking
+- Implement proper error boundaries
+- Optimize API calls with request deduplication
+- Add compression and optimization for images
+```
+
+**Testing**: Measure performance metrics, test lazy loading behavior, and verify optimization effectiveness.
+
+### Step 10: Analytics and View Tracking
+
+**Objective**: Add simple analytics to track photo and gallery popularity.
+
+**Prompt for Implementation**:
+
+```
+Implement basic analytics system:
+- Simple view tracking for individual photos
+- Gallery popularity metrics
+- API routes for recording views
+- Privacy-focused analytics (no personal data)
+- Integration with Vercel Analytics or similar
+- Admin dashboard for viewing statistics (simple)
+- Data aggregation for popular photos/galleries
+- Export functionality for analytics data
+- Proper error handling for analytics failures
+```
+
+**Testing**: Verify analytics data collection and ensure privacy compliance.
+
+### Step 11: Mobile Optimization and PWA Features
+
+**Objective**: Ensure excellent mobile experience and add progressive web app features.
+
+**Prompt for Implementation**:
+
+```
+Enhance mobile experience:
+- Fine-tune responsive design for all components
+- Implement proper touch gestures for photo viewer
+- Add PWA manifest and service worker
+- Optimize for iOS and Android browsers
+- Implement pull-to-refresh functionality
+- Add offline capability for viewed photos
+- Optimize image loading for mobile networks
+- Test and fix any mobile-specific issues
+- Add proper viewport meta tags
+- Implement safe area handling for newer mobile devices
+```
+
+**Testing**: Test thoroughly on various mobile devices and screen sizes.
+
+### Step 12: Final Polish and Deployment
+
+**Objective**: Final optimizations, testing, and deployment setup.
+
+**Prompt for Implementation**:
+
+```
+Complete the application with final polish:
+- Comprehensive error handling throughout the application
+- Loading states and skeleton screens for better UX
+- Final accessibility audit and improvements
+- Performance audit and optimizations
+- Set up proper CI/CD pipeline for deployment
+- Configure environment variables for production
+- Add proper logging and monitoring
+- Create documentation for maintenance and updates
+- Set up automated testing pipeline
+- Final cross-browser testing and bug fixes
+```
+
+**Testing**: Complete end-to-end testing, accessibility audit, and deployment verification.
+
+## Development Workflow
+
+### For Each Step:
+
+1. **Planning**: Review the prompt and understand the requirements
+2. **Implementation**: Use the provided prompt with your chosen AI coding tool
+3. **Testing**: Verify the implementation meets the requirements
+4. **Integration**: Ensure the new code integrates properly with existing code
+5. **Iteration**: Refine based on testing results
+
+### Recommended Tools:
+
+- **Primary**: Claude.ai for iterative development
+- **Alternative**: Aider for automated coding
+- **Testing**: Jest for unit tests, Cypress for e2e tests
+- **Deployment**: Vercel for seamless Next.js deployment
+
+### Branch Strategy:
+
+- `main`: Production-ready code
+- `develop`: Integration branch
+- `feature/*`: Individual feature branches
+- Use separate branches for each major step
+
+## Quality Assurance
+
+### Code Quality:
+
+- TypeScript for type safety
+- ESLint and Prettier for code consistency
+- Unit tests for utility functions
+- Integration tests for API calls
+- E2E tests for critical user flows
+
+### Performance Targets:
+
+- Initial page load < 3 seconds
+- Image lazy loading working properly
+- Core Web Vitals in "Good" range
+- Mobile performance optimized
+
+### Accessibility:
+
+- WCAG 2.1 AA compliance
+- Keyboard navigation support
+- Screen reader compatibility
+- Proper color contrast
+- Focus management
+
+This implementation plan provides a structured approach to building the photo gallery application incrementally, with each step building on the previous one and maintaining high code quality throughout the development process.
+</file>
+
+<file path="spec.md">
+# Modern Photo Gallery Specification
+
+## Project Overview
+
+A modern, minimal photo gallery application that replaces the legacy pixelpost system. The gallery will showcase hobbyist photography from vacations and concerts, pulling images from Flickr with manual curation control.
+
+## Core Requirements
+
+### Functional Requirements
+
+#### Gallery Organization
+
+- **Individual Galleries**: Separate collections for trips and concerts
+- **Best Of Collection**: Curated showcase of standout photos across all galleries
+- **Manual Curation**: Admin control over which Flickr albums appear on the site
+- **Tag-Based Selection**: Use Flickr tags to determine which photos/albums to display
+- **Cross-Gallery Tagging**: Nice-to-have feature for browsing photos by category (concerts, travel, mountains, etc.)
+
+#### Content Source
+
+- **Primary Source**: Flickr API integration
+- **Public Photos Only**: All displayed content will be public Flickr photos
+- **Collection Mapping**: Lightroom collections → Flickr albums → Gallery displays
+- **Tag-Based Filtering**: Use specific tags to control gallery inclusion
+
+#### User Experience
+
+- **Single Page Application**: Fluid navigation without page reloads
+- **Modern Minimal Design**: Clean layout with emphasis on images
+- **Grid-Based Layout**: Modern thumbnail grid with click-to-expand functionality
+- **Full-Size Viewing**: Modal or dedicated view for full-resolution images
+- **Mobile Optimized**: Responsive design for all device sizes
+- **Lazy Loading**: Performance optimization for image loading
+- **Keyboard Navigation**: Arrow keys for browsing images (nice-to-have)
+
+#### Analytics & Metrics
+
+- **View Tracking**: Simple analytics to track photo popularity
+- **No Social Features**: No comments, likes, or user interaction
+- **Privacy Focused**: Minimal data collection
+
+### Technical Requirements
+
+#### Technology Stack
+
+- **Frontend**: Next.js 14+ with App Router
+- **Styling**: Tailwind CSS for responsive design
+- **API Integration**: Flickr API for photo retrieval
+- **Deployment**: Vercel (preferred) or Netlify
+- **Analytics**: Simple view tracking (potentially Vercel Analytics)
+
+#### Performance Requirements
+
+- **Fast Loading**: Optimized image loading with lazy loading
+- **Responsive Images**: Multiple sizes for different screen resolutions
+- **Caching Strategy**: Efficient caching of Flickr API responses
+- **SEO Friendly**: Proper meta tags and structured data
+
+#### Architecture Decisions
+
+- **Static Generation**: Use Next.js ISR (Incremental Static Regeneration) for optimal performance
+- **API Routes**: Next.js API routes for Flickr integration and analytics
+- **Image Optimization**: Next.js Image component with Flickr CDN
+- **State Management**: React state (no external state library needed)
+
+## Data Architecture
+
+### Flickr Integration
+
+- **Album Discovery**: Fetch public albums based on tags
+- **Photo Metadata**: Title, description, tags, dates, EXIF data
+- **Image URLs**: Multiple sizes (thumbnail, medium, large, original)
+- **Caching**: Cache album and photo data to reduce API calls
+
+### Gallery Structure
+
+```
+Gallery Types:
+- Trip Galleries (vacation photos)
+- Concert Galleries (music events)
+- Best Of Gallery (curated highlights)
+
+Data Flow:
+Lightroom Collections → Flickr Albums → Tagged for Display → Gallery Rendering
+```
+
+### Content Management
+
+- **Tag-Based Control**: Use specific tags like "gallery-display", "best-of" to control visibility
+- **Album Categorization**: Automatic categorization based on tags or album names
+- **Manual Override**: Admin interface to exclude/include specific albums
+
+## User Interface Design
+
+### Layout Structure
+
+- **Header**: Site title, navigation between gallery types
+- **Main Grid**: Responsive photo grid (3-4 columns desktop, 2 mobile)
+- **Gallery Navigation**: Filter/browse between different collections
+- **Photo Viewer**: Modal or full-screen view for individual images
+- **Footer**: Minimal footer with photo count, last updated
+
+### Responsive Design
+
+- **Desktop**: 4-column grid, hover effects, keyboard navigation
+- **Tablet**: 3-column grid, touch-friendly interface
+- **Mobile**: 2-column grid, swipe gestures, optimized loading
+
+### Visual Design
+
+- **Minimal Aesthetic**: Clean, modern design focusing on photos
+- **High Contrast**: Good readability and accessibility
+- **Fast Transitions**: Smooth animations and page transitions
+- **Dark/Light Mode**: Optional theme switching
+
+## API Design
+
+### Flickr API Integration
+
+- **Authentication**: Public API key (no user auth needed for public photos)
+- **Endpoints Used**:
+  - `flickr.photosets.getList` - Get album list
+  - `flickr.photosets.getPhotos` - Get photos in album
+  - `flickr.photos.getInfo` - Get photo metadata
+  - `flickr.photos.getSizes` - Get available photo sizes
+
+### Internal API Routes
+
+- `/api/galleries` - Get all available galleries
+- `/api/galleries/[id]` - Get specific gallery photos
+- `/api/photos/[id]` - Get individual photo details
+- `/api/analytics/view` - Track photo views
+
+## Performance Considerations
+
+### Image Optimization
+
+- **Lazy Loading**: Load images as they enter viewport
+- **Responsive Images**: Serve appropriate sizes based on screen size
+- **Preloading**: Preload next/previous images in viewer
+- **Compression**: Optimize images without quality loss
+
+### Caching Strategy
+
+- **Static Generation**: Pre-generate gallery pages at build time
+- **ISR**: Revalidate content periodically (daily/weekly)
+- **API Caching**: Cache Flickr responses to reduce API calls
+- **CDN**: Leverage Vercel's edge network for global performance
+
+## Analytics & Monitoring
+
+### View Tracking
+
+- **Photo Views**: Track individual photo popularity
+- **Gallery Views**: Track which galleries are most popular
+- **User Behavior**: Basic analytics on browsing patterns
+- **Performance Metrics**: Core Web Vitals monitoring
+
+### Privacy Considerations
+
+- **No Personal Data**: No user accounts or personal information
+- **Minimal Tracking**: Only essential analytics
+- **GDPR Compliance**: Minimal data collection approach
+
+## Deployment & Hosting
+
+### Deployment Strategy
+
+- **Primary**: Vercel deployment from GitHub
+- **Alternative**: Netlify or GitHub Pages
+- **Domain**: Custom domain configuration
+- **SSL**: Automatic HTTPS
+
+### Environment Configuration
+
+- **Flickr API Key**: Environment variable
+- **Analytics Keys**: Secure environment variables
+- **Build Optimization**: Optimized for static generation
+
+## Development Phases
+
+### Phase 1: Core Gallery
+
+- Basic Next.js setup with Tailwind
+- Flickr API integration
+- Simple grid layout
+- Basic photo viewer
+
+### Phase 2: Enhanced UX
+
+- Lazy loading implementation
+- Mobile responsiveness
+- Keyboard navigation
+- Loading states and error handling
+
+### Phase 3: Analytics & Polish
+
+- View tracking implementation
+- Performance optimization
+- SEO optimization
+- Final UI polish
+
+### Phase 4: Advanced Features (Optional)
+
+- Cross-gallery tagging
+- Advanced filtering
+- Admin interface for curation
+- Enhanced analytics dashboard
+
+## Success Criteria
+
+- **Performance**: Fast loading times (< 3s initial load)
+- **Usability**: Intuitive navigation and photo browsing
+- **Mobile Experience**: Seamless mobile photo viewing
+- **Reliability**: Stable Flickr integration with proper error handling
+- **Maintainability**: Easy to update and add new galleries
+
+## Technical Constraints
+
+- **Flickr API Limits**: Respect rate limits and implement proper caching
+- **Static Hosting**: Design for static/serverless deployment
+- **No Database**: Use Flickr as the content source
+- **Minimal Dependencies**: Keep bundle size optimized
+
+This specification provides a complete foundation for building a modern, efficient photo gallery that meets all the identified requirements while maintaining simplicity and performance.
+</file>
+
+<file path="src/app/globals.css">
+@import "tailwindcss";
+
+:root {
+  --background: #030712; /* gray-950 */
+  --foreground: #f9fafb; /* gray-50 */
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+</file>
+
+<file path="src/lib/flickr.ts">
+import { unstable_cache } from 'next/cache';
+import {
+  FlickrPhotosetPhotosResponse,
+  FlickrPhotosetsResponse,
+} from '@/types/flickr';
+
+const API_KEY = process.env.FLICKR_API_KEY;
+const USER_ID = process.env.FLICKR_USER_ID;
+const BASE_URL = 'https://api.flickr.com/services/rest/';
+
+if (!API_KEY || !USER_ID) {
+  throw new Error(
+    'Flickr API key and User ID must be provided in environment variables.',
+  );
+}
+
+const callFlickrApi = async <T>(params: Record<string, string>): Promise<T> => {
+  const allParams = {
+    ...params,
+    api_key: API_KEY,
+    user_id: USER_ID,
+    format: 'json',
+    nojsoncallback: '1',
+  };
+
+  const url = new URL(BASE_URL);
+  Object.entries(allParams).forEach(([key, value]) =>
+    url.searchParams.append(key, value),
+  );
+
+  const response = await fetch(url.toString());
+
+  if (!response.ok) {
+    throw new Error(`Flickr API error: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+
+  if (data.stat !== 'ok') {
+    throw new Error(`Flickr API error: ${data.message}`);
+  }
+
+  return data;
+};
+
+export const getPhotoSets = unstable_cache(
+  async () => {
+    const data = await callFlickrApi<FlickrPhotosetsResponse>({
+      method: 'flickr.photosets.getList',
+      primary_photo_extras: 'url_m',
+    });
+    return data.photosets.photoset;
+  },
+  ['flickr-photosets'],
+  { revalidate: 3600 }, // Revalidate every hour
+);
+
+export const getPhotosInSet = unstable_cache(
+  async (photosetId: string) => {
+    const data = await callFlickrApi<FlickrPhotosetPhotosResponse>({
+      method: 'flickr.photosets.getPhotos',
+      photoset_id: photosetId,
+      extras: 'url_m,url_l,url_o,description',
+    });
+    return data.photoset.photo;
+  },
+  ['flickr-photos-in-set'],
+  { revalidate: 3600 }, // Revalidate every hour
+);
+</file>
+
+<file path="eslint.config.mjs">
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { FlatCompat } from '@eslint/eslintrc';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const compat = new FlatCompat({
+  baseDirectory: __dirname,
+});
+
+const eslintConfig = [
+  ...compat.extends('next/core-web-vitals', 'next/typescript', 'prettier'),
+];
+
+export default eslintConfig;
+</file>
+
+<file path="todo.md">
+# Photo Gallery Development Checklist
+
+## 📋 Project Setup & Foundation
+
+- [ ] Create Next.js 14 project with TypeScript
+- [ ] Install and configure Tailwind CSS
+- [ ] Set up ESLint and Prettier
+- [ ] Create project folder structure (components, lib, types, pages)
+- [ ] Configure environment variables for Flickr API
+- [ ] Set up basic layout component with header/footer
+- [ ] Create simple homepage with placeholder content
+- [ ] Verify project builds and runs successfully
+- [ ] Set up version control (Git repository)
+
+## 🔌 Flickr API Integration
+
+- [x] Create TypeScript interfaces for Flickr API responses
+- [x] Build Flickr service class with core methods
+- [x] Implement album fetching functionality
+- [x] Implement photo fetching from albums
+- [x] Add photo details/metadata retrieval
+- [x] Implement error handling for API failures
+- [ ] Add rate limiting protection
+- [x] Create caching mechanism for API responses
+- [ ] Write unit tests for API service
+- [ ] Test with mock data for development
+
+## 📊 Data Models & Types
+
+- [ ] Define Gallery type interfaces (trip, concert, best-of)
+- [ ] Create Photo metadata types
+- [ ] Define Album information types
+- [ ] Create Gallery configuration types
+- [ ] Define API response types for Flickr endpoints
+- [ ] Build internal data structure types
+- [ ] Create utility functions for data transformation
+- [ ] Add validation schemas for API responses
+- [ ] Ensure type safety throughout application
+- [ ] Test data transformation functions
+
+## 🎯 Core Data Processing
+
+- [ ] Build function to fetch tagged albums from Flickr
+- [ ] Implement album categorization logic
+- [ ] Create data transformation from Flickr to internal format
+- [ ] Add filtering logic based on tags
+- [ ] Implement photo selection and organization
+- [ ] Set up caching strategy for gallery data
+- [ ] Add error handling for missing/invalid data
+- [ ] Create mock data generators for development
+- [ ] Write unit tests for data processing
+- [ ] Verify album categorization accuracy
+
+## 🖼️ Gallery Grid Component
+
+- [ ] Create responsive grid layout (4/3/2 columns)
+- [ ] Build photo thumbnail component
+- [ ] Implement lazy loading for images
+- [ ] Add responsive image sizing with Next.js Image
+- [ ] Create hover effects and transitions
+- [ ] Add loading states for images
+- [ ] Implement error handling for failed image loads
+- [ ] Add accessibility features (alt text, keyboard nav)
+- [ ] Optimize for mobile touch interactions
+- [ ] Test responsive behavior across devices
+
+## 🔍 Photo Viewer Modal
+
+- [ ] Create full-screen modal overlay
+- [ ] Implement photo navigation (next/previous)
+- [ ] Add keyboard navigation (arrows, escape)
+- [ ] Implement touch/swipe gestures for mobile
+- [ ] Add photo metadata display
+- [ ] Create smooth transitions and animations
+- [ ] Implement proper focus management
+- [ ] Add preloading for next/previous images
+- [ ] Ensure responsive sizing for all orientations
+- [ ] Add close functionality (button, click-outside)
+
+## 🧭 Navigation & Filtering
+
+- [ ] Create navigation menu for gallery types
+- [ ] Implement active state management
+- [ ] Add smooth transitions between gallery views
+- [ ] Show photo count indicators
+- [ ] Add search/filter functionality (if implementing)
+- [ ] Set up URL routing for gallery views
+- [ ] Create breadcrumb navigation
+- [ ] Design mobile-friendly navigation
+- [ ] Add loading states during transitions
+- [ ] Test navigation flow and routing
+
+## 📄 Pages & Routing
+
+- [ ] Build homepage with gallery overview
+- [ ] Create individual gallery pages
+- [ ] Add proper page metadata and SEO
+- [ ] Implement Open Graph tags for social sharing
+- [ ] Add structured data for photo galleries
+- [ ] Create error pages for missing content
+- [ ] Add loading states and skeleton screens
+- [ ] Ensure proper heading hierarchy
+- [ ] Integrate gallery components with pages
+- [ ] Test page routing and SEO metadata
+
+## ⚡ Performance Optimization
+
+- [ ] Implement proper image lazy loading
+- [ ] Configure Next.js Image optimization
+- [ ] Set up caching headers and strategies
+- [ ] Add intersection observer for lazy loading
+- [ ] Optimize bundle size with code splitting
+- [ ] Add performance monitoring
+- [ ] Implement error boundaries
+- [ ] Optimize API calls with deduplication
+- [ ] Add image compression and optimization
+- [ ] Measure and verify performance improvements
+
+## 📈 Analytics & Tracking
+
+- [ ] Create simple view tracking for photos
+- [ ] Implement gallery popularity metrics
+- [ ] Build API routes for recording views
+- [ ] Ensure privacy-focused analytics
+- [ ] Integrate with Vercel Analytics
+- [ ] Create basic admin dashboard for stats
+- [ ] Add data aggregation for popular content
+- [ ] Implement analytics data export
+- [ ] Add error handling for analytics
+- [ ] Test analytics data collection
+
+## 📱 Mobile Optimization
+
+- [ ] Fine-tune responsive design for all components
+- [ ] Implement proper touch gestures
+- [ ] Add PWA manifest and service worker
+- [ ] Optimize for iOS and Android browsers
+- [ ] Implement pull-to-refresh functionality
+- [ ] Add offline capability for viewed photos
+- [ ] Optimize image loading for mobile networks
+- [ ] Fix mobile-specific issues
+- [ ] Add proper viewport meta tags
+- [ ] Handle safe areas for newer devices
+
+## 🎨 Final Polish & Deployment
+
+- [ ] Implement comprehensive error handling
+- [ ] Add loading states and skeleton screens
+- [ ] Conduct accessibility audit and improvements
+- [ ] Perform performance audit and optimizations
+- [ ] Set up CI/CD pipeline for deployment
+- [ ] Configure production environment variables
+- [ ] Add proper logging and monitoring
+- [ ] Create maintenance documentation
+- [ ] Set up automated testing pipeline
+- [ ] Complete cross-browser testing
+
+## 🧪 Testing & Quality Assurance
+
+- [ ] Write unit tests for utility functions
+- [ ] Create integration tests for API calls
+- [ ] Add E2E tests for critical user flows
+- [ ] Test TypeScript type safety
+- [ ] Verify responsive design across devices
+- [ ] Conduct accessibility testing
+- [ ] Performance testing and optimization
+- [ ] Cross-browser compatibility testing
+- [ ] Mobile device testing
+- [ ] Final bug fixes and polishing
+
+## 🚀 Deployment & Launch
+
+- [ ] Deploy to Vercel/Netlify
+- [ ] Configure custom domain (if applicable)
+- [ ] Set up SSL certificates
+- [ ] Configure CDN and caching
+- [ ] Test production deployment
+- [ ] Set up monitoring and alerting
+- [ ] Create backup and recovery plan
+- [ ] Document deployment process
+- [ ] Launch and monitor initial performance
+- [ ] Gather feedback and plan improvements
+
+## 📝 Documentation & Maintenance
+
+- [ ] Create README with setup instructions
+- [ ] Document API endpoints and usage
+- [ ] Add code comments and documentation
+- [ ] Create user guide for gallery management
+- [ ] Document deployment and maintenance procedures
+- [ ] Set up issue tracking and bug reporting
+- [ ] Plan for future feature additions
+- [ ] Create update and maintenance schedule
+- [ ] Document troubleshooting procedures
+- [ ] Set up monitoring and alerting procedures
+
+---
+
+**Progress Tracking**: ✅ Complete | 🔄 In Progress | ❌ Blocked | 📋 Not Started
+
+**Notes**: Use this checklist to track your progress through each development phase. Each major section corresponds to the implementation steps in the detailed plan.
+</file>
+
+<file path="package.json">
+{
+  "name": "photos",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\""
+  },
+  "dependencies": {
+    "geist": "^1.4.2",
+    "lucide-react": "^0.525.0",
+    "next": "15.3.5",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.3.5",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.3.3",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
+</file>
+
+<file path="src/app/page.tsx">
+import { Grid } from 'lucide-react';
+
+// Homepage Component
+const Home = () => {
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      {Array.from({ length: 16 }).map((_, i) => (
+        <div
+          key={i}
+          className="aspect-square bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700/80 transition-colors cursor-pointer"
+        >
+          <Grid className="h-8 w-8 text-gray-500" />
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export default Home;
+</file>
+
+<file path="src/app/layout.tsx">
+import { GeistSans } from 'geist/font/sans';
+import { GeistMono } from 'geist/font/mono';
+import { ReactNode } from 'react';
+import './globals.css';
+
+const Layout = ({ children }: { children: ReactNode }) => (
+  <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
+    <body className="min-h-screen">
+      <header className="bg-black/50 backdrop-blur-sm border-b border-gray-200/10 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center">
+              <h1 className="text-2xl font-light tracking-wider text-white">
+                Photo Gallery
+              </h1>
+            </div>
+            <nav className="hidden md:flex space-x-6">
+              <a
+                href="#"
+                className="text-gray-400 hover:text-white text-sm font-medium transition-colors"
+              >
+                All Photos
+              </a>
+              <a
+                href="#"
+                className="text-gray-400 hover:text-white text-sm font-medium transition-colors"
+              >
+                Trips
+              </a>
+              <a
+                href="#"
+                className="text-gray-400 hover:text-white text-sm font-medium transition-colors"
+              >
+                Concerts
+              </a>
+              <a
+                href="#"
+                className="text-gray-400 hover:text-white text-sm font-medium transition-colors"
+              >
+                Best Of
+              </a>
+            </nav>
+          </div>
+        </div>
+      </header>
+
+      <main className="px-4 sm:px-6 lg:px-8 py-8">{children}</main>
+
+      <footer className="bg-transparent mt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center text-gray-500 text-sm">
+            <p>© 2025 Photo Gallery. Powered by Flickr.</p>
+          </div>
+        </div>
+      </footer>
+    </body>
+  </html>
+);
+
+export default Layout;
+</file>
+
+</files>

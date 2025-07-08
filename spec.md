@@ -223,3 +223,11 @@ Lightroom Collections → Flickr Albums → Tagged for Display → Gallery Rende
 - **Minimal Dependencies**: Keep bundle size optimized
 
 This specification provides a complete foundation for building a modern, efficient photo gallery that meets all the identified requirements while maintaining simplicity and performance.
+
+## Inspiration for layout and themes
+https://www.harisnukem.com/image
+https://nings.tw
+
+## Other libraries to consider
+https://tanstack.com/query/latest
+https://github.com/ixartz/Next-js-Boilerplate
