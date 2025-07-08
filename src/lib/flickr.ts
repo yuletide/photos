@@ -1,18 +1,12 @@
 import { unstable_cache } from 'next/cache';
-const FlickrModule = require('flickr-sdk');
 import { FlickrPhoto, FlickrPhotoset } from '@/types/flickr';
+import flickr from './flickr-sdk-wrapper';
 
-const API_KEY = process.env.FLICKR_API_KEY;
 const USER_ID = process.env.FLICKR_USER_ID;
 
-if (!API_KEY || !USER_ID) {
-  throw new Error(
-    'Flickr API key and User ID must be provided in environment variables.',
-  );
+if (!USER_ID) {
+  throw new Error('Flickr User ID must be provided in environment variables.');
 }
-
-const Flickr = FlickrModule.default || FlickrModule;
-const flickr = new Flickr(API_KEY);
 
 export const getPhotoSets = unstable_cache(
   async (): Promise<FlickrPhotoset[]> => {
