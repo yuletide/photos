@@ -15,11 +15,11 @@ const { flickr } = createFlickr(API_KEY);
 
 export const getPhotoSets = unstable_cache(
   async (): Promise<FlickrPhotoset[]> => {
-    const res = await flickr.photosets.getList({
+    const res = await flickr('flickr.photosets.getList', {
       user_id: USER_ID,
       primary_photo_extras: 'url_m',
     });
-    return res.body.photosets.photoset;
+    return res.photosets.photoset;
   },
   ['flickr-photosets'],
   { revalidate: 3600 }, // Revalidate every hour
@@ -28,12 +28,12 @@ export const getPhotoSets = unstable_cache(
 export const getPhotosInSet = (photosetId: string) =>
   unstable_cache(
     async (): Promise<FlickrPhoto[]> => {
-      const res = await flickr.photosets.getPhotos({
+      const res = await flickr('flickr.photosets.getPhotos', {
         photoset_id: photosetId,
         user_id: USER_ID,
         extras: 'url_m,url_l,url_o,description',
       });
-      return res.body.photoset.photo;
+      return res.photoset.photo;
     },
     ['flickr-photos-in-set', photosetId],
     { revalidate: 3600 }, // Revalidate every hour
