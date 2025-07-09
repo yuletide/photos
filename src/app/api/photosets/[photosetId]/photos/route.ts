@@ -21,7 +21,7 @@ const ratelimit = new Ratelimit({
 
 export async function GET(
   req: Request,
-  { params }: { params: Record<string, string> },
+  { params }: { params: { photosetId: string } },
 ): Promise<Response> {
   const ip = req.headers.get('x-forwarded-for') ?? '127.0.0.1';
   const { success } = await ratelimit.limit(ip);
