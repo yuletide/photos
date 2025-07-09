@@ -1,8 +1,11 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { GET } from '../route';
 
-const { mockFlickr } = vi.hoisted(() => {
-  return { mockFlickr: vi.fn() };
+const { mockFlickr, mockRateLimit } = vi.hoisted(() => {
+  return {
+    mockFlickr: vi.fn(),
+    mockRateLimit: vi.fn(),
+  };
 });
 
 // Mock flickr-sdk
@@ -13,7 +16,6 @@ vi.mock('flickr-sdk', () => ({
 }));
 
 // Mock Upstash Ratelimit and Redis
-const mockRateLimit = vi.fn();
 vi.mock('@upstash/ratelimit', () => {
   const RatelimitMock = vi.fn().mockImplementation(() => ({
     limit: mockRateLimit,
