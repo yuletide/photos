@@ -27,7 +27,7 @@ export const PhotoSet = ({ set }: PhotoSetProps) => {
             alt={set.title._content}
             width={Number(set.primary_photo_extras.width_m)}
             height={Number(set.primary_photo_extras.height_m)}
-            className="w-full h-auto rounded-lg group-hover:opacity-80 transition-opacity"
+            className="w-full h-auto group-hover:opacity-80 transition-opacity"
           />
         )}
         <div className="mt-2">
