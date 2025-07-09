@@ -1,19 +1,23 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { GET } from '../route';
 
-// Mock flickr library
+// Mock flickr-sdk
 const mockFlickr = vi.fn();
-vi.mock('@/lib/flickr', () => ({
-  default: mockFlickr,
+vi.mock('flickr-sdk', () => ({
+  createFlickr: vi.fn(() => ({
+    flickr: mockFlickr,
+  })),
 }));
 
 // Mock Upstash Ratelimit and Redis
 const mockRateLimit = vi.fn();
-vi.mock('@upstash/ratelimit', () => ({
-  Ratelimit: vi.fn().mockImplementation(() => ({
+vi.mock('@upstash/ratelimit', () => {
+  const RatelimitMock = vi.fn().mockImplementation(() => ({
     limit: mockRateLimit,
-  })),
-}));
+  }));
+  RatelimitMock.slidingWindow = vi.fn();
+  return { Ratelimit: RatelimitMock };
+});
 vi.mock('@upstash/redis', () => ({
   Redis: {
     fromEnv: vi.fn(() => ({})),
@@ -44,10 +48,10 @@ describe('GET /api/photosets', () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body).toEqual(mockPhotosetsResponse);
+    expect(body).toEqual(mockPhotosetsResponse.photosets.photoset);
     expect(mockFlickr).toHaveBeenCalledWith('flickr.photosets.getList', {
       user_id: 'test-user-id',
-      primary_photo_extras: 'url_m,width_m,height_m',
+      primary_photo_extras: 'url_m',
     });
     expect(mockRateLimit).toHaveBeenCalledWith('127.0.0.1');
   });
