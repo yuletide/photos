@@ -6,7 +6,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "test": "vitest",
     "lint:fix": "next lint --fix",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\""
   },
