@@ -14,8 +14,8 @@ const mockRateLimit = vi.fn();
 vi.mock('@upstash/ratelimit', () => {
   const RatelimitMock = vi.fn().mockImplementation(() => ({
     limit: mockRateLimit,
+    slidingWindow: vi.fn(),
   }));
-  RatelimitMock.slidingWindow = vi.fn();
   return { Ratelimit: RatelimitMock };
 });
 vi.mock('@upstash/redis', () => ({
