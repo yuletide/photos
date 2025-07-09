@@ -14,12 +14,11 @@ vi.mock('flickr-sdk', () => ({
 
 // Mock Upstash Ratelimit and Redis
 const mockRateLimit = vi.fn();
-const mockSlidingWindow = vi.fn();
 vi.mock('@upstash/ratelimit', () => {
   const RatelimitMock = vi.fn().mockImplementation(() => ({
     limit: mockRateLimit,
-    slidingWindow: mockSlidingWindow,
   }));
+  RatelimitMock.slidingWindow = vi.fn();
   return { Ratelimit: RatelimitMock };
 });
 vi.mock('@upstash/redis', () => ({
