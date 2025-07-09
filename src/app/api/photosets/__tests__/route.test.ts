@@ -33,7 +33,8 @@ describe('GET /api/photosets', () => {
   let GET: any;
 
   beforeEach(async () => {
-    process.env.FLICKR_USER_ID = 'test-user-id';
+    vi.stubEnv('FLICKR_USER_ID', 'test-user-id');
+    vi.stubEnv('FLICKR_API_KEY', 'test-api-key');
     // Dynamically import the route to get the updated environment variables
     const route = await import('../route');
     GET = route.GET;
@@ -42,7 +43,7 @@ describe('GET /api/photosets', () => {
   afterEach(() => {
     vi.resetModules();
     vi.clearAllMocks();
-    delete process.env.FLICKR_USER_ID;
+    vi.unstubAllEnvs();
   });
 
   it('should return a list of photosets on success', async () => {
