@@ -1,5 +1,7 @@
 import { createFlickr } from 'flickr-sdk';
 import { NextResponse } from 'next/server';
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
 
 const API_KEY = process.env.FLICKR_API_KEY;
 const USER_ID = process.env.FLICKR_USER_ID;
@@ -12,7 +14,19 @@ if (!API_KEY || !USER_ID) {
 
 const { flickr } = createFlickr(API_KEY);
 
-export async function GET() {
+const ratelimit = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(10, '10 s'),
+});
+
+export async function GET(request: Request) {
+  const ip = request.headers.get('x-forwarded-for') ?? '127.0.0.1';
+  const { success } = await ratelimit.limit(ip);
+
+  if (!success) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+  }
+
   try {
     const res = await flickr('flickr.photosets.getList', {
       user_id: USER_ID,
