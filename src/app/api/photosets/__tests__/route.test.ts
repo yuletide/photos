@@ -1,5 +1,4 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { GET } from '../route';
 
 const { mockFlickr, mockRateLimit } = vi.hoisted(() => {
   return {
@@ -30,11 +29,18 @@ vi.mock('@upstash/redis', () => ({
 }));
 
 describe('GET /api/photosets', () => {
-  beforeEach(() => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let GET: any;
+
+  beforeEach(async () => {
     process.env.FLICKR_USER_ID = 'test-user-id';
+    // Dynamically import the route to get the updated environment variables
+    const route = await import('../route');
+    GET = route.GET;
   });
 
   afterEach(() => {
+    vi.resetModules();
     vi.clearAllMocks();
     delete process.env.FLICKR_USER_ID;
   });
