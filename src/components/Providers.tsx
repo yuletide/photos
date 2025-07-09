@@ -11,7 +11,7 @@ const Providers = ({ children }: { children: ReactNode }) => {
     <QueryClientProvider client={queryClient}>
       {children}
       <ReactQueryDevtools initialIsOpen={false} />
-    </Query-ClientProvider>
+    </QueryClientProvider>
   );
 };
 

@@ -11,7 +11,7 @@ const Layout = ({ children }: { children: ReactNode }) => (
         <header className="sticky top-0 z-50 p-4 bg-gradient-to-b from-black/80 to-transparent">
           <div className="text-center">
             <h1 className="text-2xl font-light tracking-widest text-white uppercase">
-              Photo Gallery
+              Photos
             </h1>
             <nav className="mt-2 space-x-6">
               <a
@@ -24,7 +24,7 @@ const Layout = ({ children }: { children: ReactNode }) => (
                 href="#"
                 className="text-xs text-gray-400 hover:text-white transition-colors tracking-wider uppercase"
               >
-                Trips
+                Travel
               </a>
               <a
                 href="#"
@@ -46,7 +46,7 @@ const Layout = ({ children }: { children: ReactNode }) => (
 
         <footer className="w-full p-8 mt-16 text-center">
           <p className="text-xs text-gray-600">
-            © 2025 Photo Gallery. Powered by Flickr.
+            © 2025 Yuletide. Powered by Flickr.
           </p>
         </footer>
       </Providers>
