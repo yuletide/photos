@@ -1,8 +1,11 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { GET } from '../route';
 
+const { mockFlickr } = vi.hoisted(() => {
+  return { mockFlickr: vi.fn() };
+});
+
 // Mock flickr-sdk
-const mockFlickr = vi.fn();
 vi.mock('flickr-sdk', () => ({
   createFlickr: vi.fn(() => ({
     flickr: mockFlickr,
