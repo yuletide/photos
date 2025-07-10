@@ -2,7 +2,6 @@ import { createFlickr } from 'flickr-sdk';
 import { NextResponse } from 'next/server';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
-import { filterPhotosetsByConfig } from '@/config/galleries';
 
 const API_KEY = process.env.FLICKR_API_KEY;
 const USER_ID = process.env.FLICKR_USER_ID;
@@ -21,9 +20,6 @@ const ratelimit = new Ratelimit({
 });
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const categorySlug = searchParams.get('category');
-
   const ip = request.headers.get('x-forwarded-for') ?? '127.0.0.1';
   const { success } = await ratelimit.limit(ip);
 
@@ -37,12 +33,7 @@ export async function GET(request: Request) {
       primary_photo_extras: 'url_m',
     });
 
-    const filteredPhotosets = filterPhotosetsByConfig(
-      res.photosets.photoset,
-      categorySlug,
-    );
-
-    return NextResponse.json(filteredPhotosets);
+    return NextResponse.json(res.photosets.photoset);
   } catch (error) {
     console.error(error);
     return NextResponse.json(
