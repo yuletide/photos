@@ -8,25 +8,27 @@ interface GalleryCategory {
 // The photosetIds are the IDs of your Flickr albums.
 export const galleryConfig: GalleryCategory[] = [
   {
-    name: 'Trips',
-    slug: 'trips',
+    name: 'Travel',
+    slug: 'travel',
     photosetIds: [
-      '72157719993353008', // Example: "Japan 2023"
-      '72157712885336336', // Example: "Iceland 2022"
+      '72157673637437610', // Example: "Japan 2023"
+      '72177720327261716', // Example: "Iceland 2022"
+      '72157613054729173',
     ],
   },
   {
     name: 'Concerts',
     slug: 'concerts',
     photosetIds: [
-      '72157709582155772', // Example: "Taylor Swift"
+      '72177720327288509', // Example: "Taylor Swift"
+      '72177720316800271',
     ],
   },
   {
     name: 'Best Of',
     slug: 'best-of',
     photosetIds: [
-      '72157691024744483', // Example: "Best of 2023"
+      '72157603655578863', // Example: "Best of 2023"
     ],
   },
 ];
