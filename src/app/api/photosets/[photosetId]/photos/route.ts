@@ -21,7 +21,7 @@ const ratelimit = new Ratelimit({
 
 export async function GET(
   req: Request,
-  { params }: { params: Promise<{ photosetId: string }> },
+  { params }: { params: { photosetId: string } },
 ): Promise<NextResponse> {
   const ip = req.headers.get('x-forwarded-for') ?? '127.0.0.1';
   const { success } = await ratelimit.limit(ip);
@@ -30,7 +30,7 @@ export async function GET(
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
   }
 
-  const { photosetId } = await params;
+  const { photosetId } = params;
 
   try {
     const res = await flickr('flickr.photosets.getPhotos', {
