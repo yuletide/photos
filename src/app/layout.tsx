@@ -4,6 +4,7 @@ import { ReactNode } from 'react';
 import Providers from '@/components/Providers';
 import './globals.css';
 import { Analytics } from '@vercel/analytics/next';
+import Navigation from '@/components/Navigation';
 
 const Layout = ({ children }: { children: ReactNode }) => (
   <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
@@ -14,32 +15,7 @@ const Layout = ({ children }: { children: ReactNode }) => (
             <h1 className="text-2xl font-light tracking-widest text-white uppercase">
               Photos
             </h1>
-            <nav className="mt-2 space-x-6">
-              <a
-                href="#"
-                className="text-xs text-gray-400 hover:text-white transition-colors tracking-wider uppercase"
-              >
-                All
-              </a>
-              <a
-                href="#"
-                className="text-xs text-gray-400 hover:text-white transition-colors tracking-wider uppercase"
-              >
-                Travel
-              </a>
-              <a
-                href="#"
-                className="text-xs text-gray-400 hover:text-white transition-colors tracking-wider uppercase"
-              >
-                Concerts
-              </a>
-              <a
-                href="#"
-                className="text-xs text-gray-400 hover:text-white transition-colors tracking-wider uppercase"
-              >
-                Best Of
-              </a>
-            </nav>
+            <Navigation />
           </div>
         </header>
 
