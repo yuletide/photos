@@ -15,13 +15,18 @@ vi.mock('flickr-sdk', () => ({
 }));
 
 // Mock Upstash Ratelimit and Redis
+// TODO this is ugly but thanks claude
 vi.mock('@upstash/ratelimit', () => {
   const RatelimitMock = vi.fn().mockImplementation(() => ({
     limit: mockRateLimit,
-  }));
+  })) as unknown as {
+    (): { limit: typeof mockRateLimit };
+    slidingWindow: ReturnType<typeof vi.fn>;
+  };
   RatelimitMock.slidingWindow = vi.fn();
   return { Ratelimit: RatelimitMock };
 });
+// Mock Upstash Redis
 vi.mock('@upstash/redis', () => ({
   Redis: {
     fromEnv: vi.fn(() => ({})),
@@ -33,6 +38,7 @@ describe('GET /api/photosets', () => {
   let GET: any;
 
   beforeEach(async () => {
+    // stub environment variables
     vi.stubEnv('FLICKR_USER_ID', 'test-user-id');
     vi.stubEnv('FLICKR_API_KEY', 'test-api-key');
     // Dynamically import the route to get the updated environment variables
