@@ -1,5 +1,5 @@
-import { Suspense } from 'react';
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { galleryConfig } from '@/config/galleries';
 import { PhotoSetGrid } from '@/components/PhotoSetGrid';
 
