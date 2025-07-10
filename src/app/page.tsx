@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -7,7 +8,7 @@ import { PhotoSet } from '@/components/PhotoSet';
 import { galleryConfig } from '@/config/galleries';
 import { FlickrPhotoset } from '@/types/flickr';
 
-const Home = () => {
+const HomeContents = () => {
   const searchParams = useSearchParams();
   const category = searchParams.get('category');
 
@@ -33,6 +34,14 @@ const Home = () => {
   if (isError) return <div className="text-center">Error fetching data</div>;
 
   return (
+    <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4">
+      {photoSets?.map((set) => <PhotoSet key={set.id} set={set} />)}
+    </div>
+  );
+};
+
+const Home = () => {
+  return (
     <>
       <nav className="my-8 flex justify-center gap-4">
         <Link href="/" className="text-blue-500 hover:text-blue-700">
@@ -48,9 +57,9 @@ const Home = () => {
           </Link>
         ))}
       </nav>
-      <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4">
-        {photoSets?.map((set) => <PhotoSet key={set.id} set={set} />)}
-      </div>
+      <Suspense fallback={<div className="text-center">Loading...</div>}>
+        <HomeContents />
+      </Suspense>
     </>
   );
 };
