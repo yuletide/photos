@@ -9,25 +9,7 @@ import { galleryConfig } from '@/config/galleries';
 import { FlickrPhotoset } from '@/types/flickr';
 
 const HomeContents = () => {
-  const searchParams = useSearchParams();
-  const category = searchParams.get('category');
-
-  const {
-    data: photoSets,
-    isLoading,
-    isError,
-  } = useQuery<FlickrPhotoset[]>({
-    queryKey: ['photoSets', category],
-    queryFn: async () => {
-      const url = category
-        ? `/api/photosets?category=${category}`
-        : '/api/photosets';
-      const res = await fetch(url);
-      if (!res.ok) {
-        throw new Error('Failed to fetch photo sets');
-      }
-      return res.json();
-    },
+  
   });
 
   if (isLoading) return <div className="text-center">Loading...</div>;
@@ -58,7 +40,25 @@ const Home = () => {
         ))}
       </nav>
       <Suspense fallback={<div className="text-center">Loading...</div>}>
-        <HomeContents />
+      const searchParams = useSearchParams();
+  const category = searchParams.get('category');
+
+  const {
+    data: photoSets,
+    isLoading,
+    isError,
+  } = useQuery<FlickrPhotoset[]>({
+    queryKey: ['photoSets', category],
+    queryFn: async () => {
+      const url = category
+        ? `/api/photosets?category=${category}`
+        : '/api/photosets';
+      const res = await fetch(url);
+      if (!res.ok) {
+        throw new Error('Failed to fetch photo sets');
+      }
+      return res.json();
+    },
       </Suspense>
     </>
   );
