@@ -3,6 +3,7 @@ import { GeistMono } from 'geist/font/mono';
 import { ReactNode } from 'react';
 import Providers from '@/components/Providers';
 import './globals.css';
+import { Analytics } from '@vercel/analytics/next';
 
 const Layout = ({ children }: { children: ReactNode }) => (
   <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
@@ -50,6 +51,7 @@ const Layout = ({ children }: { children: ReactNode }) => (
           </p>
         </footer>
       </Providers>
+      <Analytics />
     </body>
   </html>
 );
