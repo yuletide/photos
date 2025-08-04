@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
 import { PhotoSet } from '@/components/PhotoSet';
 import { FlickrPhotoset } from '@/types/flickr';
+import { getPhotoSets } from '@/lib/static-data';
 
 export const PhotoSetGrid = () => {
   const searchParams = useSearchParams();
@@ -15,16 +16,7 @@ export const PhotoSetGrid = () => {
     isError,
   } = useQuery<FlickrPhotoset[]>({
     queryKey: ['photoSets', category],
-    queryFn: async () => {
-      const url = category
-        ? `/api/photosets?category=${category}`
-        : '/api/photosets';
-      const res = await fetch(url);
-      if (!res.ok) {
-        throw new Error('Failed to fetch photo sets');
-      }
-      return res.json();
-    },
+    queryFn: () => getPhotoSets(category),
   });
 
   if (isLoading) return <div className="text-center">Loading...</div>;

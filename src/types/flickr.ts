@@ -14,6 +14,9 @@ export interface FlickrPhoto {
   url_m?: string; // Medium photo URL
   height_m?: number;
   width_m?: number;
+  description?: {
+    _content: string;
+  };
 }
 
 export interface FlickrPhotoset {

@@ -1,6 +1,12 @@
 import Home from '@/app/page';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
+import { vi } from 'vitest';
+
+// Mock next/navigation
+vi.mock('next/navigation', () => ({
+  useSearchParams: vi.fn(() => new URLSearchParams()),
+}));
 
 const createWrapper = () => {
   const queryClient = new QueryClient({

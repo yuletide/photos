@@ -1,19 +1,12 @@
 import { FlickrPhoto, FlickrPhotoset } from '@/types/flickr';
+import { getPhotoSets as getStaticPhotoSets, getPhotosInSet as getStaticPhotosInSet } from '@/lib/static-data';
 
 export const getPhotoSets = async (): Promise<FlickrPhotoset[]> => {
-  const response = await fetch('/api/photosets');
-  if (!response.ok) {
-    throw new Error('Failed to fetch photosets');
-  }
-  return response.json();
+  return getStaticPhotoSets();
 };
 
 export const getPhotosInSet = async (
   photosetId: string,
 ): Promise<FlickrPhoto[]> => {
-  const response = await fetch(`/api/photosets/${photosetId}/photos`);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch photos for photoset ${photosetId}`);
-  }
-  return response.json();
+  return getStaticPhotosInSet(photosetId);
 };
