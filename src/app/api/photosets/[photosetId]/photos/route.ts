@@ -3,17 +3,6 @@ import { NextResponse } from 'next/server';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 
-const API_KEY = process.env.FLICKR_API_KEY;
-const USER_ID = process.env.FLICKR_USER_ID;
-
-if (!API_KEY || !USER_ID) {
-  throw new Error(
-    'Flickr API key and User ID must be provided in environment variables.',
-  );
-}
-
-const { flickr } = createFlickr(API_KEY);
-
 const ratelimit = new Ratelimit({
   redis: Redis.fromEnv(),
   limiter: Ratelimit.slidingWindow(10, '10 s'),
@@ -32,10 +21,22 @@ export async function GET(
 
   const { photosetId } = await params;
 
+  const API_KEY = process.env.FLICKR_API_KEY;
+  const USER_ID = process.env.FLICKR_USER_ID;
+
+  if (!API_KEY || !USER_ID) {
+    return NextResponse.json(
+      { error: 'Server is missing Flickr configuration' },
+      { status: 500 },
+    );
+  }
+
+  const { flickr } = createFlickr(API_KEY);
+
   try {
     const res = await flickr('flickr.photosets.getPhotos', {
       photoset_id: photosetId,
-      user_id: USER_ID!,
+      user_id: USER_ID,
       extras: 'url_m,url_l,url_o,description',
     });
     console.log(res);

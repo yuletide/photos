@@ -4,17 +4,6 @@ import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 import { filterPhotosetsByConfig } from '@/config/galleries';
 
-const API_KEY = process.env.FLICKR_API_KEY;
-const USER_ID = process.env.FLICKR_USER_ID;
-
-if (!API_KEY || !USER_ID) {
-  throw new Error(
-    'Flickr API key and User ID must be provided in environment variables.',
-  );
-}
-
-const { flickr } = createFlickr(API_KEY);
-
 const ratelimit = new Ratelimit({
   redis: Redis.fromEnv(),
   limiter: Ratelimit.slidingWindow(10, '10 s'),
@@ -30,6 +19,18 @@ export async function GET(request: Request) {
   if (!success) {
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
   }
+
+  const API_KEY = process.env.FLICKR_API_KEY;
+  const USER_ID = process.env.FLICKR_USER_ID;
+
+  if (!API_KEY || !USER_ID) {
+    return NextResponse.json(
+      { error: 'Server is missing Flickr configuration' },
+      { status: 500 },
+    );
+  }
+
+  const { flickr } = createFlickr(API_KEY);
 
   try {
     const res = await flickr('flickr.photosets.getList', {
