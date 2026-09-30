@@ -1,4 +1,4 @@
-interface GalleryCategory {
+export interface GalleryCategory {
   name: string;
   slug: string;
   photosetIds: string[];
@@ -33,31 +33,26 @@ export const galleryConfig: GalleryCategory[] = [
   },
 ];
 
-interface Photoset {
-  id: string;
-  [key: string]: unknown;
-}
+export const getCategory = (slug: string) =>
+  galleryConfig.find((c) => c.slug === slug);
 
-export const filterPhotosetsByConfig = (
-  photosets: Photoset[],
+// Every photoset shown anywhere on the site, deduped, in config order.
+export const allPhotosetIds = () => [
+  ...new Set(galleryConfig.flatMap((category) => category.photosetIds)),
+];
+
+// Pick the configured photosets (optionally for one category), preserving
+// config order and dropping any IDs that Flickr didn't return.
+export const filterPhotosetsByConfig = <T extends { id: string }>(
+  photosets: T[],
   categorySlug?: string | null,
-): Photoset[] => {
-  let allowedIds: string[];
-
-  if (categorySlug) {
-    const category = galleryConfig.find((c) => c.slug === categorySlug);
-    allowedIds = category ? category.photosetIds : [];
-  } else {
-    // If no category, get all unique IDs from the config
-    allowedIds = [
-      ...new Set(galleryConfig.flatMap((category) => category.photosetIds)),
-    ];
-  }
+): T[] => {
+  const allowedIds = categorySlug
+    ? (getCategory(categorySlug)?.photosetIds ?? [])
+    : allPhotosetIds();
 
   const photosetMap = new Map(photosets.map((set) => [set.id, set]));
-
-  // Return the photosets in the order they are defined in the config
   return allowedIds
     .map((id) => photosetMap.get(id))
-    .filter((set): set is Photoset => set !== undefined);
+    .filter((set): set is T => set !== undefined);
 };
