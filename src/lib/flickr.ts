@@ -55,7 +55,7 @@ const callFlickr = async <T>(
 const PER_PAGE = 500;
 
 // Grid thumbnails (m) plus the larger sizes the lightbox picks from.
-const PHOTO_EXTRAS = 'url_m,url_l,url_h,url_k,description';
+const PHOTO_EXTRAS = 'url_m,url_l,url_h,url_k';
 
 const fetchAllPages = async <T>(
   fetchPage: (page: number) => Promise<{ items: T[]; pages: number }>,
