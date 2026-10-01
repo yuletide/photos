@@ -54,6 +54,9 @@ const callFlickr = async <T>(
 // Flickr caps per_page at 500, so walk every page until `pages` is reached.
 const PER_PAGE = 500;
 
+// Grid thumbnails (m) plus the larger sizes the lightbox picks from.
+const PHOTO_EXTRAS = 'url_m,url_l,url_h,url_k';
+
 const fetchAllPages = async <T>(
   fetchPage: (page: number) => Promise<{ items: T[]; pages: number }>,
 ): Promise<T[]> => {
@@ -90,7 +93,7 @@ export const getPhotoset = async (
         photoset_id: photosetId,
         page: String(page),
         per_page: String(PER_PAGE),
-        extras: 'url_m,url_l,description',
+        extras: PHOTO_EXTRAS,
       },
     );
     title = res.photoset.title;
@@ -110,7 +113,7 @@ export const getPhotosByTags = async (tags: string[]): Promise<FlickrPhoto[]> =>
         sort: 'date-taken-desc',
         page: String(page),
         per_page: String(PER_PAGE),
-        extras: 'url_m,url_l,description',
+        extras: PHOTO_EXTRAS,
       },
     );
     return { items: res.photos.photo, pages: res.photos.pages };

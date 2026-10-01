@@ -12,6 +12,12 @@ export interface FlickrPhoto {
   url_l?: string; // Large, 1024px on longest side
   height_l?: number;
   width_l?: number;
+  url_h?: string; // Large, 1600px on longest side
+  height_h?: number;
+  width_h?: number;
+  url_k?: string; // Large, 2048px on longest side
+  height_k?: number;
+  width_k?: number;
 }
 
 export interface FlickrPhotoset {
