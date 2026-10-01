@@ -18,7 +18,23 @@ export interface FlickrPhoto {
   url_k?: string; // Large, 2048px on longest side
   height_k?: number;
   width_k?: number;
+  tags?: string; // Space-separated, normalized Flickr tags
+  datetaken?: string; // "YYYY-MM-DD HH:MM:SS", camera local time
+  datetakenunknown?: string | number; // 1 when Flickr has no taken date
 }
+
+// The handful of EXIF fields shown in the lightbox, already formatted.
+export interface PhotoExif {
+  camera?: string;
+  lens?: string;
+  exposureTime?: string;
+  aperture?: string;
+  iso?: string;
+  focalLength?: string;
+  exposureBias?: string;
+}
+
+export type Photo = FlickrPhoto & { exif?: PhotoExif };
 
 export interface FlickrPhotoset {
   id: string;
@@ -62,6 +78,21 @@ export interface FlickrPhotosSearchResponse {
     pages: number;
     total: number;
     photo: FlickrPhoto[];
+  };
+  stat: 'ok';
+}
+
+export interface FlickrExifResponse {
+  photo: {
+    id: string;
+    camera?: string;
+    exif: {
+      tagspace: string;
+      tag: string;
+      label: string;
+      raw: { _content: string };
+      clean?: { _content: string };
+    }[];
   };
   stat: 'ok';
 }

@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { PhotoGrid } from '../PhotoGrid';
 
 const photo = (id: string, extra = {}) => ({
@@ -7,6 +7,7 @@ const photo = (id: string, extra = {}) => ({
   secret: 's',
   server: '1',
   title: `Photo ${id}`,
+  tags: 'flowers',
   url_m: `https://example.com/${id}_m.jpg`,
   width_m: 500,
   height_m: 333,
@@ -23,6 +24,8 @@ const photos = [
 ];
 
 describe('PhotoGrid', () => {
+  beforeEach(() => localStorage.clear());
+
   it('links each photo to its largest available size', () => {
     render(<PhotoGrid photos={photos} />);
     const [a, b] = screen.getAllByRole('link');
@@ -45,5 +48,26 @@ describe('PhotoGrid', () => {
       fireEvent.click(screen.getAllByRole('link')[0], { metaKey: true }),
     ).toBe(true);
     expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('toggles the info panel with the (i) button and the i key', () => {
+    render(<PhotoGrid photos={photos} />);
+    fireEvent.click(screen.getAllByRole('link')[0]);
+    expect(screen.queryByText('Photo a')).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show info (i)' }));
+    expect(screen.getByText('Photo a')).toBeTruthy();
+    expect(localStorage.getItem('photo-info')).toBe('1');
+
+    fireEvent.keyDown(document, { key: 'i' });
+    expect(screen.queryByText('Photo a')).toBeNull();
+    expect(localStorage.getItem('photo-info')).toBe('0');
+  });
+
+  it('remembers the info panel preference', () => {
+    localStorage.setItem('photo-info', '1');
+    render(<PhotoGrid photos={photos} />);
+    fireEvent.click(screen.getAllByRole('link')[0]);
+    expect(screen.getByText('Photo a')).toBeTruthy();
   });
 });

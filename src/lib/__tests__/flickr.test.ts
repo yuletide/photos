@@ -1,9 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  getExif,
   getPhotosByTags,
   getPhotoset,
   getPhotosets,
   REVALIDATE_SECONDS,
+  withExif,
 } from '../flickr';
 
 const mockFetch = vi.fn();
@@ -105,6 +107,112 @@ describe('flickr client', () => {
     expect(url.searchParams.get('tags')).toBe('flowers,gallery');
     expect(url.searchParams.get('tag_mode')).toBe('all');
     expect(url.searchParams.get('user_id')).toBe('test-user-id');
+  });
+
+  // Mock one getExif response. Entries are [tag, raw, clean?], shaped like
+  // real Flickr payloads.
+  const mockExif = (camera: string, entries: [string, string, string?][]) =>
+    mockFetch.mockResolvedValue(
+      jsonResponse({
+        stat: 'ok',
+        photo: {
+          id: 'p1',
+          camera,
+          exif: entries.map(([tag, raw, clean]) => ({
+            tagspace: 'ExifIFD',
+            tag,
+            label: tag,
+            raw: { _content: raw },
+            ...(clean && { clean: { _content: clean } }),
+          })),
+        },
+      }),
+    );
+
+  it('formats the EXIF fields shown in the lightbox', async () => {
+    // As returned by Flickr for an OM-1 photo.
+    mockExif('OM Digital Solutions OM-1', [
+      ['ExposureTime', '1/125', '0.008 sec (1/125)'],
+      ['FNumber', '8.0', 'f/8.0'],
+      ['ISO', '2000'],
+      ['FocalLength', '25.0 mm', '25 mm'],
+      ['ExposureCompensation', '0', '0 EV'],
+      ['LensModel', 'OLYMPUS M.25mm F1.8'],
+    ]);
+
+    await expect(getExif('p1')).resolves.toEqual({
+      camera: 'OM Digital Solutions OM-1',
+      lens: 'OLYMPUS M.25mm F1.8',
+      exposureTime: '1/125 s',
+      aperture: 'f/8',
+      iso: '2000',
+      focalLength: '25 mm',
+    });
+  });
+
+  it('normalizes values that arrive already formatted', async () => {
+    mockExif('Canon EOS 20D', [
+      ['ExposureTime', '0.006 sec (1/160)'],
+      ['FNumber', 'f/4.5'],
+      ['ISO', 'ISO 400'],
+      ['FocalLength', '17 mm'],
+      ['ExposureCompensation', '-2/3 EV'],
+      ['Lens', '17.0-50.0 mm'],
+    ]);
+
+    await expect(getExif('p1')).resolves.toEqual({
+      camera: 'Canon EOS 20D',
+      lens: '17-50 mm',
+      exposureTime: '1/160 s',
+      aperture: 'f/4.5',
+      iso: '400',
+      focalLength: '17 mm',
+      exposureBias: '-2/3 EV',
+    });
+  });
+
+  it.each([
+    ['-0.7', '-2/3 EV'],
+    ['-0.3', '-1/3 EV'],
+    ['+0.3', '+1/3 EV'],
+    ['+1/3', '+1/3 EV'],
+    ['-1', '-1 EV'],
+    ['-1.7', '-1 2/3 EV'],
+    ['-3.7', '-3 2/3 EV'],
+    ['+0', undefined],
+  ])('shows exposure compensation %s as %s', async (raw, expected) => {
+    mockExif('', [['ExposureCompensation', raw]]);
+    expect((await getExif('p1'))?.exposureBias).toBe(expected);
+  });
+
+  it('shows long exposures in seconds', async () => {
+    mockExif('', [['ExposureTime', '20']]);
+    expect((await getExif('p1'))?.exposureTime).toBe('20 s');
+  });
+
+  it('returns no EXIF when Flickr hides it', async () => {
+    mockFetch.mockResolvedValue(
+      jsonResponse({ stat: 'fail', code: 2, message: 'Permission denied' }),
+    );
+    await expect(getExif('p1')).resolves.toBeUndefined();
+  });
+
+  it('attaches EXIF to every photo, keeping order', async () => {
+    mockFetch.mockImplementation(async (url: URL) => {
+      const id = url.searchParams.get('photo_id');
+      return jsonResponse({
+        stat: 'ok',
+        photo: { id, camera: `cam-${id}`, exif: [] },
+      });
+    });
+
+    const ids = Array.from({ length: 20 }, (_, i) => `p${i}`);
+    const photos = await withExif(
+      ids.map((id) => ({ id, secret: '', server: '', title: '' })),
+    );
+    expect(photos.map((p) => [p.id, p.exif?.camera])).toEqual(
+      ids.map((id) => [id, `cam-${id}`]),
+    );
   });
 
   it('throws on Flickr API-level errors', async () => {

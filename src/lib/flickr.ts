@@ -1,9 +1,12 @@
 import {
+  FlickrExifResponse,
   FlickrPhoto,
   FlickrPhotoset,
   FlickrPhotosetPhotosResponse,
   FlickrPhotosetsResponse,
   FlickrPhotosSearchResponse,
+  Photo,
+  PhotoExif,
 } from '@/types/flickr';
 
 const API_URL = 'https://api.flickr.com/services/rest/';
@@ -54,8 +57,9 @@ const callFlickr = async <T>(
 // Flickr caps per_page at 500, so walk every page until `pages` is reached.
 const PER_PAGE = 500;
 
-// Grid thumbnails (m) plus the larger sizes the lightbox picks from.
-const PHOTO_EXTRAS = 'url_m,url_l,url_h,url_k';
+// Grid thumbnails (m), the larger sizes the lightbox picks from, and the
+// details shown in its info panel.
+const PHOTO_EXTRAS = 'url_m,url_l,url_h,url_k,tags,date_taken';
 
 const fetchAllPages = async <T>(
   fetchPage: (page: number) => Promise<{ items: T[]; pages: number }>,
@@ -118,3 +122,109 @@ export const getPhotosByTags = async (tags: string[]): Promise<FlickrPhoto[]> =>
     );
     return { items: res.photos.photo, pages: res.photos.pages };
   });
+
+// Fields read from flickr.photos.getExif, keyed by Flickr's tag name. The
+// first tag present wins.
+const EXIF_FIELDS: Record<Exclude<keyof PhotoExif, 'camera'>, string[]> = {
+  lens: ['LensModel', 'Lens'],
+  exposureTime: ['ExposureTime'],
+  aperture: ['FNumber'],
+  iso: ['ISO'],
+  focalLength: ['FocalLength'],
+  exposureBias: ['ExposureCompensation'],
+};
+
+// Flickr's raw EXIF values are usually bare ("1/160", "4.5", "25.0 mm"),
+// but cameras and Flickr's own formatting vary ("0.006 sec (1/160)",
+// "f/4.5", "-0.7 EV"), so each formatter normalizes before decorating.
+// An empty result means "don't show".
+
+// "25.0" -> "25", "17.0-50.0 mm" -> "17-50 mm"
+const trimZeros = (value: string) => value.replace(/(\d+)\.0\b/g, '$1');
+
+const parseNumber = (value: string) => {
+  const fraction = value.match(/^([+-]?)(\d+)\/(\d+)$/);
+  return fraction
+    ? Number(`${fraction[1]}1`) * (Number(fraction[2]) / Number(fraction[3]))
+    : Number(value);
+};
+
+// Exposure compensation in thirds of a stop: -0.7 -> "-2/3", -1.3 -> "-1 1/3".
+const formatStops = (value: number) => {
+  const thirds = Math.round(Math.abs(value) * 3);
+  const whole = Math.floor(thirds / 3);
+  const rest = thirds % 3 ? `${thirds % 3}/3` : '';
+  const sign = value < 0 ? '-' : '+';
+  return `${sign}${[whole || '', rest].filter(Boolean).join(' ')}`;
+};
+
+const formatExif: Record<keyof typeof EXIF_FIELDS, (raw: string) => string> = {
+  lens: (raw) => trimZeros(raw.trim()),
+  exposureTime: (raw) => {
+    // "0.006 sec (1/160)" -> "1/160"; "1/160", "1/160 s", "20" pass through.
+    const value = (raw.match(/\(([^)]+)\)/)?.[1] ?? raw)
+      .replace(/\s*(sec|s)\.?$/i, '')
+      .trim();
+    return value ? `${trimZeros(value)} s` : '';
+  },
+  aperture: (raw) => {
+    const value = raw.replace(/^f\//i, '').trim();
+    return value ? `f/${trimZeros(value)}` : '';
+  },
+  iso: (raw) => raw.replace(/^ISO\s*/i, '').trim(),
+  focalLength: (raw) => {
+    const value = parseFloat(raw);
+    return Number.isFinite(value) ? `${trimZeros(String(value))} mm` : '';
+  },
+  exposureBias: (raw) => {
+    const value = parseNumber(raw.replace(/\s*EV$/i, '').trim());
+    // Zero is the default; not worth showing.
+    return Number.isFinite(value) && Math.round(value * 3) !== 0
+      ? `${formatStops(value)} EV`
+      : '';
+  },
+};
+
+// EXIF for one photo, or undefined if Flickr won't share it (the owner can
+// hide EXIF in their Flickr privacy settings) or the call fails.
+export const getExif = async (
+  photoId: string,
+): Promise<PhotoExif | undefined> => {
+  try {
+    const { photo } = await callFlickr<FlickrExifResponse>(
+      'flickr.photos.getExif',
+      { photo_id: photoId },
+    );
+    const raw = (tags: string[]) =>
+      tags
+        .map((tag) => photo.exif.find((e) => e.tag === tag)?.raw._content)
+        .find(Boolean);
+
+    const exif: PhotoExif = { camera: photo.camera || undefined };
+    for (const [field, tags] of Object.entries(EXIF_FIELDS)) {
+      const key = field as keyof typeof EXIF_FIELDS;
+      const value = raw(tags);
+      const formatted = value && formatExif[key](value);
+      if (formatted) exif[key] = formatted;
+    }
+    return exif;
+  } catch {
+    return undefined;
+  }
+};
+
+// Concurrent getExif calls per page, to stay polite to Flickr's API.
+const EXIF_CONCURRENCY = 8;
+
+export const withExif = async (photos: FlickrPhoto[]): Promise<Photo[]> => {
+  const result: Photo[] = [...photos];
+  let next = 0;
+  const worker = async () => {
+    while (next < photos.length) {
+      const i = next++;
+      result[i] = { ...photos[i], exif: await getExif(photos[i].id) };
+    }
+  };
+  await Promise.all(Array.from({ length: EXIF_CONCURRENCY }, worker));
+  return result;
+};
