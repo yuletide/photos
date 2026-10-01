@@ -3,7 +3,7 @@ export interface GalleryCategory {
   slug: string;
   // Flickr album IDs shown as album tiles.
   photosetIds: string[];
-  // Photos tagged with ALL of these Flickr tags are shown directly, ahead of
+  // Photos tagged with ALL of these Flickr tags are shown directly, below
   // any albums. Tag in Lightroom (keywords) and they appear within the hour.
   tags?: string[];
 }
@@ -23,7 +23,7 @@ export const galleryConfig: GalleryCategory[] = [
     name: 'Concerts',
     slug: 'concerts',
     photosetIds: [
-      '72177720327288509', // Example: "Taylor Swift"
+      '72177720327288509', // Example: "Pessimiste 2026"
       '72177720316800271',
     ],
   },

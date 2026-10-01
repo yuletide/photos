@@ -47,8 +47,8 @@ const CategoryPage = async ({ params }: Props) => {
 
   return (
     <div className="space-y-12">
-      {photos.length > 0 && <PhotoGrid photos={photos} />}
       {photosets.length > 0 && <PhotoSetGrid photosets={photosets} />}
+      {photos.length > 0 && <PhotoGrid photos={photos} />}
     </div>
   );
 };
