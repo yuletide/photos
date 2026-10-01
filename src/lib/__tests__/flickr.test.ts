@@ -124,7 +124,7 @@ describe('flickr client', () => {
           camera: 'Panasonic DMC-GX85',
           exif: [
             tag('ExposureTime', '1/250'),
-            tag('FNumber', '2.8'),
+            tag('FNumber', '8.0'),
             tag('ISO', '1600'),
             tag('FocalLength', '25.0 mm'),
             tag('ExposureCompensation', '0'),
@@ -138,7 +138,7 @@ describe('flickr client', () => {
       camera: 'Panasonic DMC-GX85',
       lens: 'LUMIX G 25/F1.7',
       exposureTime: '1/250 s',
-      aperture: 'f/2.8',
+      aperture: 'f/8',
       iso: '1600',
       focalLength: '25 mm',
     });

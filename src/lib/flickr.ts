@@ -137,7 +137,7 @@ const EXIF_FIELDS: Record<Exclude<keyof PhotoExif, 'camera'>, string[]> = {
 const formatExif: Record<keyof typeof EXIF_FIELDS, (raw: string) => string> = {
   lens: (raw) => raw,
   exposureTime: (raw) => `${raw} s`,
-  aperture: (raw) => `f/${raw}`,
+  aperture: (raw) => `f/${raw.replace(/\.0$/, '')}`,
   iso: (raw) => raw,
   focalLength: (raw) => raw.replace('.0 mm', ' mm'),
   exposureBias: (raw) => `${raw} EV`,
