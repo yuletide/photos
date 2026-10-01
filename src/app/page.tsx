@@ -1,14 +1,10 @@
-import { Suspense } from 'react';
 import { PhotoSetGrid } from '@/components/PhotoSetGrid';
+import { filterPhotosetsByConfig } from '@/config/galleries';
+import { getPhotosets } from '@/lib/flickr';
 
-const Home = () => {
-  return (
-    <>
-      <Suspense fallback={<div className="text-center">Loading...</div>}>
-        <PhotoSetGrid />
-      </Suspense>
-    </>
-  );
+const Home = async () => {
+  const photosets = filterPhotosetsByConfig(await getPhotosets());
+  return <PhotoSetGrid photosets={photosets} />;
 };
 
 export default Home;

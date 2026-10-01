@@ -1,32 +1,19 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { FlickrPhotoset } from '@/types/flickr';
 
-interface PhotoSetType {
-  id: string;
-  title: {
-    _content: string;
-  };
-  photos: number;
-  primary_photo_extras?: {
-    url_m: string;
-    width_m: string;
-    height_m: string;
-  };
-}
-interface PhotoSetProps {
-  set: PhotoSetType;
-}
+export const PhotoSet = ({ set }: { set: FlickrPhotoset }) => {
+  const cover = set.primary_photo_extras;
 
-export const PhotoSet = ({ set }: PhotoSetProps) => {
   return (
     <div className="break-inside-avoid">
       <Link href={`/sets/${set.id}`} className="block group">
-        {set.primary_photo_extras?.url_m && (
+        {cover?.url_m && (
           <Image
-            src={set.primary_photo_extras.url_m}
+            src={cover.url_m}
             alt={set.title._content}
-            width={Number(set.primary_photo_extras.width_m)}
-            height={Number(set.primary_photo_extras.height_m)}
+            width={cover.width_m}
+            height={cover.height_m}
             className="w-full h-auto group-hover:opacity-80 transition-opacity"
           />
         )}
@@ -34,7 +21,7 @@ export const PhotoSet = ({ set }: PhotoSetProps) => {
           <h2 className="font-medium text-gray-200 group-hover:text-white transition-colors">
             {set.title._content}
           </h2>
-          <p className="text-sm text-gray-500">{set.photos} photos</p>
+          <p className="text-sm text-gray-500">{set.count_photos} photos</p>
         </div>
       </Link>
     </div>

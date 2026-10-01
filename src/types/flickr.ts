@@ -1,66 +1,51 @@
+// Shapes of the Flickr REST responses we use (format=json&nojsoncallback=1).
+
 export interface FlickrPhoto {
   id: string;
   secret: string;
   server: string;
-  farm: number;
   title: string;
-  isprimary: string;
-  url_o?: string; // Original photo URL
-  height_o?: number;
-  width_o?: number;
-  url_l?: string; // Large photo URL
-  height_l?: number;
-  width_l?: number;
-  url_m?: string; // Medium photo URL
+  description?: { _content: string };
+  url_m?: string; // Medium, 500px on longest side
   height_m?: number;
   width_m?: number;
+  url_l?: string; // Large, 1024px on longest side
+  height_l?: number;
+  width_l?: number;
 }
 
 export interface FlickrPhotoset {
   id: string;
   primary: string;
-  secret: string;
-  server: string;
-  farm: number;
-  photos: number;
-  videos: number;
-  title: {
-    _content: string;
-  };
-  description: {
-    _content: string;
-  };
+  count_photos: number;
+  title: { _content: string };
+  description: { _content: string };
   primary_photo_extras?: {
     url_m: string;
-    height_m: string;
-    width_m: string;
+    height_m: number;
+    width_m: number;
   };
 }
 
 export interface FlickrPhotosetPhotosResponse {
   photoset: {
     id: string;
-    primary: string;
     owner: string;
-    ownername: string;
     photo: FlickrPhoto[];
-    page: number;
-    per_page: number;
-    perpage: number;
-    pages: number;
     title: string;
+    page: number;
+    pages: number;
     total: number;
   };
-  stat: string;
+  stat: 'ok';
 }
 
 export interface FlickrPhotosetsResponse {
   photosets: {
     page: number;
     pages: number;
-    perpage: number;
     total: number;
     photoset: FlickrPhotoset[];
   };
-  stat: string;
+  stat: 'ok';
 }

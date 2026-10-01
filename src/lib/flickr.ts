@@ -1,19 +1,99 @@
-import { FlickrPhoto, FlickrPhotoset } from '@/types/flickr';
+import {
+  FlickrPhoto,
+  FlickrPhotoset,
+  FlickrPhotosetPhotosResponse,
+  FlickrPhotosetsResponse,
+} from '@/types/flickr';
 
-export const getPhotoSets = async (): Promise<FlickrPhotoset[]> => {
-  const response = await fetch('/api/photosets');
-  if (!response.ok) {
-    throw new Error('Failed to fetch photosets');
+const API_URL = 'https://api.flickr.com/services/rest/';
+
+// How often (seconds) cached Flickr responses are refreshed. Pages built from
+// this data are regenerated in the background via ISR - no redeploy needed.
+export const REVALIDATE_SECONDS = 3600;
+
+const getCredentials = () => {
+  const apiKey = process.env.FLICKR_API_KEY;
+  const userId = process.env.FLICKR_USER_ID;
+  if (!apiKey || !userId) {
+    throw new Error(
+      'FLICKR_API_KEY and FLICKR_USER_ID must be set in the environment.',
+    );
   }
-  return response.json();
+  return { apiKey, userId };
 };
 
-export const getPhotosInSet = async (
-  photosetId: string,
-): Promise<FlickrPhoto[]> => {
-  const response = await fetch(`/api/photosets/${photosetId}/photos`);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch photos for photoset ${photosetId}`);
+const callFlickr = async <T>(
+  method: string,
+  params: Record<string, string>,
+): Promise<T> => {
+  const { apiKey, userId } = getCredentials();
+  const url = new URL(API_URL);
+  url.search = new URLSearchParams({
+    method,
+    api_key: apiKey,
+    user_id: userId,
+    format: 'json',
+    nojsoncallback: '1',
+    ...params,
+  }).toString();
+
+  const res = await fetch(url, { next: { revalidate: REVALIDATE_SECONDS } });
+  if (!res.ok) {
+    throw new Error(`Flickr ${method} failed with HTTP ${res.status}`);
   }
-  return response.json();
+
+  // Flickr returns HTTP 200 with stat "fail" for API-level errors.
+  const body = await res.json();
+  if (body.stat !== 'ok') {
+    throw new Error(`Flickr ${method} failed: ${body.message ?? 'unknown'}`);
+  }
+  return body as T;
+};
+
+// Flickr caps per_page at 500, so walk every page until `pages` is reached.
+const PER_PAGE = 500;
+
+const fetchAllPages = async <T>(
+  fetchPage: (page: number) => Promise<{ items: T[]; pages: number }>,
+): Promise<T[]> => {
+  const first = await fetchPage(1);
+  const rest = await Promise.all(
+    Array.from({ length: Math.max(0, Number(first.pages) - 1) }, (_, i) =>
+      fetchPage(i + 2),
+    ),
+  );
+  return [first, ...rest].flatMap((page) => page.items);
+};
+
+export const getPhotosets = async (): Promise<FlickrPhotoset[]> =>
+  fetchAllPages(async (page) => {
+    const res = await callFlickr<FlickrPhotosetsResponse>(
+      'flickr.photosets.getList',
+      {
+        page: String(page),
+        per_page: String(PER_PAGE),
+        primary_photo_extras: 'url_m',
+      },
+    );
+    return { items: res.photosets.photoset, pages: res.photosets.pages };
+  });
+
+export const getPhotoset = async (
+  photosetId: string,
+): Promise<{ title: string; photos: FlickrPhoto[] }> => {
+  let title = '';
+  const photos = await fetchAllPages(async (page) => {
+    const res = await callFlickr<FlickrPhotosetPhotosResponse>(
+      'flickr.photosets.getPhotos',
+      {
+        photoset_id: photosetId,
+        page: String(page),
+        per_page: String(PER_PAGE),
+        extras: 'url_m,url_l,description',
+      },
+    );
+    title = res.photoset.title;
+    return { items: res.photoset.photo, pages: res.photoset.pages };
+  });
+  return { title, photos };
 };
