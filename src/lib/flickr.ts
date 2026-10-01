@@ -138,7 +138,7 @@ const formatExif: Record<keyof typeof EXIF_FIELDS, (raw: string) => string> = {
   lens: (raw) => raw,
   exposureTime: (raw) => `${raw} s`,
   aperture: (raw) => `f/${raw}`,
-  iso: (raw) => `ISO ${raw}`,
+  iso: (raw) => raw,
   focalLength: (raw) => raw.replace('.0 mm', ' mm'),
   exposureBias: (raw) => `${raw} EV`,
 };

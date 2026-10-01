@@ -30,18 +30,25 @@ describe('PhotoInfo', () => {
             lens: '25mm F1.7',
             exposureTime: '1/250 s',
             aperture: 'f/1.7',
-            iso: 'ISO 3200',
+            iso: '3200',
           },
         }}
       />,
     );
     expect(screen.getByText('Crowdsurf')).toBeTruthy();
     expect(screen.getByText('January 3, 2025')).toBeTruthy();
-    expect(screen.getByText(/1\/250 s.*f\/1\.7.*ISO 3200/)).toBeTruthy();
-    expect(screen.getByText('GX85 · 25mm F1.7')).toBeTruthy();
+    expect(screen.getByText('1/250 s')).toBeTruthy();
+    expect(screen.getByText('f/1.7')).toBeTruthy();
+    expect(screen.getByText('3200')).toBeTruthy();
+    expect(screen.getByText('GX85')).toBeTruthy();
+    expect(screen.getByText('25mm F1.7')).toBeTruthy();
+    expect(screen.queryByText('Focal length')).toBeNull();
     expect(screen.getAllByRole('listitem').map((li) => li.textContent)).toEqual(
       ['metal', 'sf'],
     );
+    expect(
+      screen.getByRole('link', { name: /View on Flickr/ }).getAttribute('href'),
+    ).toBe('https://www.flickr.com/photo.gne?id=p1');
   });
 
   it('renders without EXIF or a date', () => {

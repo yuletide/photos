@@ -139,7 +139,7 @@ describe('flickr client', () => {
       lens: 'LUMIX G 25/F1.7',
       exposureTime: '1/250 s',
       aperture: 'f/2.8',
-      iso: 'ISO 1600',
+      iso: '1600',
       focalLength: '25 mm',
     });
   });

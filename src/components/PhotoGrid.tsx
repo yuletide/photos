@@ -5,6 +5,7 @@ import { useEffect, useState, type MouseEvent } from 'react';
 import Lightbox, {
   IconButton,
   createIcon,
+  useLightboxState,
   type SlideImage,
 } from 'yet-another-react-lightbox';
 import 'yet-another-react-lightbox/styles.css';
@@ -50,6 +51,19 @@ const InfoIcon = createIcon(
   'Info',
   <path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />,
 );
+
+// Info for the current slide: a right-hand column on wide screens (the photo
+// shrinks to make room, see globals.css) and a bottom sheet on phones.
+const InfoPanel = () => {
+  const { currentSlide } = useLightboxState();
+  const photo = currentSlide && 'photo' in currentSlide && currentSlide.photo;
+  if (!photo) return null;
+  return (
+    <aside className="absolute inset-x-0 bottom-0 h-[45dvh] overflow-y-auto border-t border-white/10 bg-neutral-950 p-5 md:inset-y-0 md:left-auto md:h-auto md:w-72 md:border-l md:border-t-0 md:px-6 md:pt-20">
+      <PhotoInfo photo={photo} />
+    </aside>
+  );
+};
 
 // Whether the info panel is open, remembered per viewer across visits.
 const INFO_KEY = 'photo-info';
@@ -141,12 +155,8 @@ export const PhotoGrid = ({ photos }: { photos: Photo[] }) => {
             'close',
           ],
         }}
-        render={{
-          slideFooter: ({ slide }) =>
-            showInfo && 'photo' in slide && slide.photo ? (
-              <PhotoInfo photo={slide.photo} />
-            ) : null,
-        }}
+        className={showInfo ? 'photo-info-open' : undefined}
+        render={{ controls: () => (showInfo ? <InfoPanel /> : null) }}
       />
     </>
   );
