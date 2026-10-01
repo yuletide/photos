@@ -49,3 +49,13 @@ export interface FlickrPhotosetsResponse {
   };
   stat: 'ok';
 }
+
+export interface FlickrPhotosSearchResponse {
+  photos: {
+    page: number;
+    pages: number;
+    total: number;
+    photo: FlickrPhoto[];
+  };
+  stat: 'ok';
+}

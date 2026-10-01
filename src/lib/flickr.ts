@@ -3,6 +3,7 @@ import {
   FlickrPhotoset,
   FlickrPhotosetPhotosResponse,
   FlickrPhotosetsResponse,
+  FlickrPhotosSearchResponse,
 } from '@/types/flickr';
 
 const API_URL = 'https://api.flickr.com/services/rest/';
@@ -97,3 +98,20 @@ export const getPhotoset = async (
   });
   return { title, photos };
 };
+
+// Public photos carrying every one of `tags`, newest first.
+export const getPhotosByTags = async (tags: string[]): Promise<FlickrPhoto[]> =>
+  fetchAllPages(async (page) => {
+    const res = await callFlickr<FlickrPhotosSearchResponse>(
+      'flickr.photos.search',
+      {
+        tags: tags.join(','),
+        tag_mode: 'all',
+        sort: 'date-taken-desc',
+        page: String(page),
+        per_page: String(PER_PAGE),
+        extras: 'url_m,url_l,description',
+      },
+    );
+    return { items: res.photos.photo, pages: res.photos.pages };
+  });
