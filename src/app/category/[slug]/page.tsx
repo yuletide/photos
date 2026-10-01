@@ -7,7 +7,7 @@ import {
   galleryConfig,
   getCategory,
 } from '@/config/galleries';
-import { getPhotosByTags, getPhotosets } from '@/lib/flickr';
+import { getPhotosByTags, getPhotosets, withExif } from '@/lib/flickr';
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -35,7 +35,7 @@ const CategoryPage = async ({ params }: Props) => {
   }
 
   const [photos, photosets] = await Promise.all([
-    getPhotosByTags(category.tags),
+    getPhotosByTags(category.tags).then(withExif),
     category.photosetIds.length
       ? getPhotosets().then((sets) => filterPhotosetsByConfig(sets, slug))
       : [],

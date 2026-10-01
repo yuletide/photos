@@ -1,9 +1,12 @@
 import {
+  FlickrExifResponse,
   FlickrPhoto,
   FlickrPhotoset,
   FlickrPhotosetPhotosResponse,
   FlickrPhotosetsResponse,
   FlickrPhotosSearchResponse,
+  Photo,
+  PhotoExif,
 } from '@/types/flickr';
 
 const API_URL = 'https://api.flickr.com/services/rest/';
@@ -54,8 +57,9 @@ const callFlickr = async <T>(
 // Flickr caps per_page at 500, so walk every page until `pages` is reached.
 const PER_PAGE = 500;
 
-// Grid thumbnails (m) plus the larger sizes the lightbox picks from.
-const PHOTO_EXTRAS = 'url_m,url_l,url_h,url_k';
+// Grid thumbnails (m), the larger sizes the lightbox picks from, and the
+// details shown in its info panel.
+const PHOTO_EXTRAS = 'url_m,url_l,url_h,url_k,tags,date_taken';
 
 const fetchAllPages = async <T>(
   fetchPage: (page: number) => Promise<{ items: T[]; pages: number }>,
@@ -118,3 +122,68 @@ export const getPhotosByTags = async (tags: string[]): Promise<FlickrPhoto[]> =>
     );
     return { items: res.photos.photo, pages: res.photos.pages };
   });
+
+// Fields read from flickr.photos.getExif, keyed by Flickr's tag name. The
+// first tag present wins.
+const EXIF_FIELDS: Record<Exclude<keyof PhotoExif, 'camera'>, string[]> = {
+  lens: ['LensModel', 'Lens'],
+  exposureTime: ['ExposureTime'],
+  aperture: ['FNumber'],
+  iso: ['ISO'],
+  focalLength: ['FocalLength'],
+  exposureBias: ['ExposureCompensation'],
+};
+
+const formatExif: Record<keyof typeof EXIF_FIELDS, (raw: string) => string> = {
+  lens: (raw) => raw,
+  exposureTime: (raw) => `${raw} s`,
+  aperture: (raw) => `f/${raw}`,
+  iso: (raw) => `ISO ${raw}`,
+  focalLength: (raw) => raw.replace('.0 mm', ' mm'),
+  exposureBias: (raw) => `${raw} EV`,
+};
+
+// EXIF for one photo, or undefined if Flickr won't share it (the owner can
+// hide EXIF in their Flickr privacy settings) or the call fails.
+export const getExif = async (
+  photoId: string,
+): Promise<PhotoExif | undefined> => {
+  try {
+    const { photo } = await callFlickr<FlickrExifResponse>(
+      'flickr.photos.getExif',
+      { photo_id: photoId },
+    );
+    const raw = (tags: string[]) =>
+      tags
+        .map((tag) => photo.exif.find((e) => e.tag === tag)?.raw._content)
+        .find(Boolean);
+
+    const exif: PhotoExif = { camera: photo.camera || undefined };
+    for (const [field, tags] of Object.entries(EXIF_FIELDS)) {
+      const key = field as keyof typeof EXIF_FIELDS;
+      const value = raw(tags);
+      if (value) exif[key] = formatExif[key](value);
+    }
+    // A zero exposure bias is the default; not worth showing.
+    if (exif.exposureBias?.startsWith('0 ')) delete exif.exposureBias;
+    return exif;
+  } catch {
+    return undefined;
+  }
+};
+
+// Concurrent getExif calls per page, to stay polite to Flickr's API.
+const EXIF_CONCURRENCY = 8;
+
+export const withExif = async (photos: FlickrPhoto[]): Promise<Photo[]> => {
+  const result: Photo[] = [...photos];
+  let next = 0;
+  const worker = async () => {
+    while (next < photos.length) {
+      const i = next++;
+      result[i] = { ...photos[i], exif: await getExif(photos[i].id) };
+    }
+  };
+  await Promise.all(Array.from({ length: EXIF_CONCURRENCY }, worker));
+  return result;
+};

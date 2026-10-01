@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { PhotoGrid } from '@/components/PhotoGrid';
 import { allPhotosetIds } from '@/config/galleries';
-import { getPhotoset } from '@/lib/flickr';
+import { getPhotoset, withExif } from '@/lib/flickr';
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -31,7 +31,7 @@ const SetPage = async ({ params }: Props) => {
       <h2 className="mb-6 text-center text-xl font-light tracking-wide">
         {title}
       </h2>
-      <PhotoGrid photos={photos} />
+      <PhotoGrid photos={await withExif(photos)} />
     </>
   );
 };
