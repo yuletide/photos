@@ -24,7 +24,7 @@ ways, and can use both:
 - **Albums** (`photosetIds`): a list of Flickr album IDs, shown as album
   tiles that open `/sets/[id]`. Good for trips or shows that belong together.
 - **Tags** (`tags`): every public photo tagged with _all_ of these Flickr
-  tags, newest first, shown directly as a photo grid above any albums. Good
+  tags, newest first, shown directly as a photo grid below any albums. Good
   for themes that cut across albums, or sets too small to deserve an album.
 
 ```ts
