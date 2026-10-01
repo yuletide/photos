@@ -50,24 +50,50 @@ const callFlickr = async <T>(
   return body as T;
 };
 
-export const getPhotosets = async (): Promise<FlickrPhotoset[]> => {
-  const res = await callFlickr<FlickrPhotosetsResponse>(
-    'flickr.photosets.getList',
-    { per_page: '500', primary_photo_extras: 'url_m' },
+// Flickr caps per_page at 500, so walk every page until `pages` is reached.
+const PER_PAGE = 500;
+
+const fetchAllPages = async <T>(
+  fetchPage: (page: number) => Promise<{ items: T[]; pages: number }>,
+): Promise<T[]> => {
+  const first = await fetchPage(1);
+  const rest = await Promise.all(
+    Array.from({ length: Math.max(0, Number(first.pages) - 1) }, (_, i) =>
+      fetchPage(i + 2),
+    ),
   );
-  return res.photosets.photoset;
+  return [first, ...rest].flatMap((page) => page.items);
 };
+
+export const getPhotosets = async (): Promise<FlickrPhotoset[]> =>
+  fetchAllPages(async (page) => {
+    const res = await callFlickr<FlickrPhotosetsResponse>(
+      'flickr.photosets.getList',
+      {
+        page: String(page),
+        per_page: String(PER_PAGE),
+        primary_photo_extras: 'url_m',
+      },
+    );
+    return { items: res.photosets.photoset, pages: res.photosets.pages };
+  });
 
 export const getPhotoset = async (
   photosetId: string,
 ): Promise<{ title: string; photos: FlickrPhoto[] }> => {
-  const res = await callFlickr<FlickrPhotosetPhotosResponse>(
-    'flickr.photosets.getPhotos',
-    {
-      photoset_id: photosetId,
-      per_page: '500',
-      extras: 'url_m,url_l,description',
-    },
-  );
-  return { title: res.photoset.title, photos: res.photoset.photo };
+  let title = '';
+  const photos = await fetchAllPages(async (page) => {
+    const res = await callFlickr<FlickrPhotosetPhotosResponse>(
+      'flickr.photosets.getPhotos',
+      {
+        photoset_id: photosetId,
+        page: String(page),
+        per_page: String(PER_PAGE),
+        extras: 'url_m,url_l,description',
+      },
+    );
+    title = res.photoset.title;
+    return { items: res.photoset.photo, pages: res.photoset.pages };
+  });
+  return { title, photos };
 };

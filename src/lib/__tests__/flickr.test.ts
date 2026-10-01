@@ -49,6 +49,35 @@ describe('flickr client', () => {
     );
   });
 
+  it('fetches every page of photosets', async () => {
+    mockFetch.mockImplementation(async (url: URL) => {
+      const page = Number(url.searchParams.get('page'));
+      return jsonResponse({
+        stat: 'ok',
+        photosets: { page, pages: 3, photoset: [{ id: `set-${page}` }] },
+      });
+    });
+
+    const sets = await getPhotosets();
+    expect(sets.map((s) => s.id)).toEqual(['set-1', 'set-2', 'set-3']);
+    expect(mockFetch).toHaveBeenCalledTimes(3);
+  });
+
+  it('fetches every page of photos in a photoset', async () => {
+    mockFetch.mockImplementation(async (url: URL) => {
+      const page = Number(url.searchParams.get('page'));
+      return jsonResponse({
+        stat: 'ok',
+        photoset: { title: 'Trip', page, pages: 2, photo: [{ id: `p${page}` }] },
+      });
+    });
+
+    const { title, photos } = await getPhotoset('123');
+    expect(title).toBe('Trip');
+    expect(photos.map((p) => p.id)).toEqual(['p1', 'p2']);
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+  });
+
   it('throws on Flickr API-level errors', async () => {
     mockFetch.mockResolvedValue(
       jsonResponse({ stat: 'fail', message: 'Invalid API Key' }),

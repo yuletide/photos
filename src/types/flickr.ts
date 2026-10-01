@@ -33,6 +33,8 @@ export interface FlickrPhotosetPhotosResponse {
     owner: string;
     photo: FlickrPhoto[];
     title: string;
+    page: number;
+    pages: number;
     total: number;
   };
   stat: 'ok';
@@ -40,6 +42,8 @@ export interface FlickrPhotosetPhotosResponse {
 
 export interface FlickrPhotosetsResponse {
   photosets: {
+    page: number;
+    pages: number;
     total: number;
     photoset: FlickrPhotoset[];
   };
