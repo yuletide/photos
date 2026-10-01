@@ -9,11 +9,17 @@ export const visibleTags = (tags = '') =>
     .split(' ')
     .filter((tag) => tag && !HIDDEN_TAGS.has(tag) && !/[:=]/.test(tag));
 
-// Lightroom often publishes the file name as the title; don't show those.
-export const displayTitle = (title: string) =>
-  /\.(jpe?g|png|tiff?|heic|dng)$/i.test(title.trim()) ? '' : title.trim();
+// Lightroom often publishes the file name as the title ("20230821-P8210388",
+// "20070831_MG_4415.jpg"); don't show those. A title with no spaces and a run
+// of 6+ digits is treated as a file name.
+const looksLikeFileName = (title: string) =>
+  /\.(jpe?g|png|tiff?|heic|dng)$/i.test(title) ||
+  (!/\s/.test(title) && /\d{6,}/.test(title));
 
-const formatDate = (photo: FlickrPhoto) => {
+export const displayTitle = (title: string) =>
+  looksLikeFileName(title.trim()) ? '' : title.trim();
+
+export const formatDate = (photo: FlickrPhoto) => {
   if (!photo.datetaken || Number(photo.datetakenunknown)) return '';
   // Flickr's taken date is camera local time with no zone; format it as-is.
   const date = new Date(`${photo.datetaken.replace(' ', 'T')}Z`);

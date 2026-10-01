@@ -10,7 +10,12 @@ import {
 describe('PhotoInfo', () => {
   it('hides file-name titles', () => {
     expect(displayTitle('20250103-P1030363.jpg')).toBe('');
+    expect(displayTitle('20230821-P8210388')).toBe('');
+    expect(displayTitle('20260419-_4192597')).toBe('');
+    expect(displayTitle('20070831_MG_4415')).toBe('');
     expect(displayTitle('Crowdsurf at DNA')).toBe('Crowdsurf at DNA');
+    expect(displayTitle('Moonglow')).toBe('Moonglow');
+    expect(displayTitle('Cuba 2017')).toBe('Cuba 2017');
   });
 
   it('hides curation and machine tags', () => {
