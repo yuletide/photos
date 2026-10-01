@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
 import { notFound } from 'next/navigation';
+import { PhotoGrid } from '@/components/PhotoGrid';
 import { allPhotosetIds } from '@/config/galleries';
 import { getPhotoset } from '@/lib/flickr';
 
@@ -31,27 +31,7 @@ const SetPage = async ({ params }: Props) => {
       <h2 className="mb-6 text-center text-xl font-light tracking-wide">
         {title}
       </h2>
-      <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4">
-        {photos.map(
-          (photo, i) =>
-            photo.url_m && (
-              <a
-                key={photo.id}
-                href={photo.url_l ?? photo.url_m}
-                className="block break-inside-avoid hover:opacity-80 transition-opacity"
-              >
-                <Image
-                  src={photo.url_m}
-                  alt={photo.title}
-                  width={photo.width_m}
-                  height={photo.height_m}
-                  loading={i < 6 ? 'eager' : 'lazy'}
-                  className="w-full h-auto"
-                />
-              </a>
-            ),
-        )}
-      </div>
+      <PhotoGrid photos={photos} />
     </>
   );
 };

@@ -1,5 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { getPhotoset, getPhotosets, REVALIDATE_SECONDS } from '../flickr';
+import {
+  getPhotosByTags,
+  getPhotoset,
+  getPhotosets,
+  REVALIDATE_SECONDS,
+} from '../flickr';
 
 const mockFetch = vi.fn();
 
@@ -68,7 +73,12 @@ describe('flickr client', () => {
       const page = Number(url.searchParams.get('page'));
       return jsonResponse({
         stat: 'ok',
-        photoset: { title: 'Trip', page, pages: 2, photo: [{ id: `p${page}` }] },
+        photoset: {
+          title: 'Trip',
+          page,
+          pages: 2,
+          photo: [{ id: `p${page}` }],
+        },
       });
     });
 
@@ -76,6 +86,25 @@ describe('flickr client', () => {
     expect(title).toBe('Trip');
     expect(photos.map((p) => p.id)).toEqual(['p1', 'p2']);
     expect(mockFetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('searches every page of photos matching all tags', async () => {
+    mockFetch.mockImplementation(async (url: URL) => {
+      const page = Number(url.searchParams.get('page'));
+      return jsonResponse({
+        stat: 'ok',
+        photos: { page, pages: 2, photo: [{ id: `p${page}` }] },
+      });
+    });
+
+    const photos = await getPhotosByTags(['flowers', 'gallery']);
+    expect(photos.map((p) => p.id)).toEqual(['p1', 'p2']);
+
+    const [url] = mockFetch.mock.calls[0];
+    expect(url.searchParams.get('method')).toBe('flickr.photos.search');
+    expect(url.searchParams.get('tags')).toBe('flowers,gallery');
+    expect(url.searchParams.get('tag_mode')).toBe('all');
+    expect(url.searchParams.get('user_id')).toBe('test-user-id');
   });
 
   it('throws on Flickr API-level errors', async () => {

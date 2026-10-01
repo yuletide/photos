@@ -1,12 +1,13 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { PhotoGrid } from '@/components/PhotoGrid';
 import { PhotoSetGrid } from '@/components/PhotoSetGrid';
 import {
   filterPhotosetsByConfig,
   galleryConfig,
   getCategory,
 } from '@/config/galleries';
-import { getPhotosets } from '@/lib/flickr';
+import { getPhotosByTags, getPhotosets } from '@/lib/flickr';
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -25,10 +26,31 @@ export const generateMetadata = async ({
 
 const CategoryPage = async ({ params }: Props) => {
   const { slug } = await params;
-  if (!getCategory(slug)) notFound();
+  const category = getCategory(slug);
+  if (!category) notFound();
 
-  const photosets = filterPhotosetsByConfig(await getPhotosets(), slug);
-  return <PhotoSetGrid photosets={photosets} />;
+  if (!category.tags?.length) {
+    const photosets = filterPhotosetsByConfig(await getPhotosets(), slug);
+    return <PhotoSetGrid photosets={photosets} />;
+  }
+
+  const [photos, photosets] = await Promise.all([
+    getPhotosByTags(category.tags),
+    category.photosetIds.length
+      ? getPhotosets().then((sets) => filterPhotosetsByConfig(sets, slug))
+      : [],
+  ]);
+
+  return (
+    <div className="space-y-12">
+      {photos.length > 0 ? (
+        <PhotoGrid photos={photos} />
+      ) : (
+        <p className="text-center text-gray-500">No photos here yet.</p>
+      )}
+      {photosets.length > 0 && <PhotoSetGrid photosets={photosets} />}
+    </div>
+  );
 };
 
 export default CategoryPage;
