@@ -41,13 +41,13 @@ const CategoryPage = async ({ params }: Props) => {
       : [],
   ]);
 
+  if (photos.length === 0 && photosets.length === 0) {
+    return <p className="text-center text-gray-500">No photos here yet.</p>;
+  }
+
   return (
     <div className="space-y-12">
-      {photos.length > 0 ? (
-        <PhotoGrid photos={photos} />
-      ) : (
-        <p className="text-center text-gray-500">No photos here yet.</p>
-      )}
+      {photos.length > 0 && <PhotoGrid photos={photos} />}
       {photosets.length > 0 && <PhotoSetGrid photosets={photosets} />}
     </div>
   );
