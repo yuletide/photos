@@ -49,7 +49,8 @@ only photos you've picked show up, not everything you've ever tagged
 
 - **Tag-based categories:** add the keywords (e.g. `flowers` and `gallery`)
   and publish or re-publish to Flickr through the Flickr publish service.
-  Lightroom keywords become Flickr tags; the photo appears within the hour.
+  Lightroom keywords become Flickr tags. After the one-hour cache expires, a
+  request starts a background refresh; requests after it completes see the photo.
 - **Album categories:** publish into a Photoset collection under the Flickr
   publish service. New photos in an already-configured album appear within the
   hour.
