@@ -5,7 +5,6 @@ import {
   getPhotoset,
   getPhotosets,
   REVALIDATE_SECONDS,
-  withExif,
 } from '../flickr';
 
 const mockFetch = vi.fn();
@@ -197,22 +196,12 @@ describe('flickr client', () => {
     await expect(getExif('p1')).resolves.toBeUndefined();
   });
 
-  it('attaches EXIF to every photo, keeping order', async () => {
-    mockFetch.mockImplementation(async (url: URL) => {
-      const id = url.searchParams.get('photo_id');
-      return jsonResponse({
-        stat: 'ok',
-        photo: { id, camera: `cam-${id}`, exif: [] },
-      });
-    });
-
-    const ids = Array.from({ length: 20 }, (_, i) => `p${i}`);
-    const photos = await withExif(
-      ids.map((id) => ({ id, secret: '', server: '', title: '' })),
-    );
-    expect(photos.map((p) => [p.id, p.exif?.camera])).toEqual(
-      ids.map((id) => [id, `cam-${id}`]),
-    );
+  it("keeps EXIF out of Next's data cache", async () => {
+    // Flickr reports errors such as rate limits with HTTP 200, which the data
+    // cache would otherwise keep like a success.
+    mockExif('', []);
+    await getExif('p1');
+    expect(mockFetch.mock.calls[0][1]).toEqual({ cache: 'no-store' });
   });
 
   it('throws on Flickr API-level errors', async () => {

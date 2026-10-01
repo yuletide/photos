@@ -1,4 +1,4 @@
-import { Photo, PhotoExif } from '@/types/flickr';
+import { FlickrPhoto, PhotoExif } from '@/types/flickr';
 
 // Curation tags (e.g. the "gallery" tag that puts photos on the site) and
 // machine tags like "uploaded:by=instagram" aren't interesting to viewers.
@@ -13,7 +13,7 @@ export const visibleTags = (tags = '') =>
 export const displayTitle = (title: string) =>
   /\.(jpe?g|png|tiff?|heic|dng)$/i.test(title.trim()) ? '' : title.trim();
 
-const formatDate = (photo: Photo) => {
+const formatDate = (photo: FlickrPhoto) => {
   if (!photo.datetaken || Number(photo.datetakenunknown)) return '';
   // Flickr's taken date is camera local time with no zone; format it as-is.
   const date = new Date(`${photo.datetaken.replace(' ', 'T')}Z`);
@@ -73,10 +73,17 @@ const Fields = ({
   );
 };
 
-export const PhotoInfo = ({ photo }: { photo: Photo }) => {
+// `exif` is undefined while loading and null when Flickr has none to share;
+// either way those sections are simply left out.
+export const PhotoInfo = ({
+  photo,
+  exif,
+}: {
+  photo: FlickrPhoto;
+  exif?: PhotoExif | null;
+}) => {
   const title = displayTitle(photo.title);
   const date = formatDate(photo);
-  const exif = photo.exif ?? {};
   const tags = visibleTags(photo.tags);
 
   return (
@@ -98,8 +105,8 @@ export const PhotoInfo = ({ photo }: { photo: Photo }) => {
           )}
         </header>
       )}
-      <Fields exif={exif} fields={EXPOSURE} mono />
-      <Fields exif={exif} fields={GEAR} />
+      {exif && <Fields exif={exif} fields={EXPOSURE} mono />}
+      {exif && <Fields exif={exif} fields={GEAR} />}
       {tags.length > 0 && (
         <div>
           <Label>Tags</Label>

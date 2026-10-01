@@ -25,13 +25,13 @@ describe('PhotoInfo', () => {
           title: 'Crowdsurf',
           datetaken: '2025-01-03 20:57:33',
           tags: 'metal gallery sf',
-          exif: {
-            camera: 'GX85',
-            lens: '25mm F1.7',
-            exposureTime: '1/250 s',
-            aperture: 'f/1.7',
-            iso: '3200',
-          },
+        }}
+        exif={{
+          camera: 'GX85',
+          lens: '25mm F1.7',
+          exposureTime: '1/250 s',
+          aperture: 'f/1.7',
+          iso: '3200',
         }}
       />,
     );

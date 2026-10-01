@@ -34,8 +34,6 @@ export interface PhotoExif {
   exposureBias?: string;
 }
 
-export type Photo = FlickrPhoto & { exif?: PhotoExif };
-
 export interface FlickrPhotoset {
   id: string;
   primary: string;

@@ -5,7 +5,6 @@ import {
   FlickrPhotosetPhotosResponse,
   FlickrPhotosetsResponse,
   FlickrPhotosSearchResponse,
-  Photo,
   PhotoExif,
 } from '@/types/flickr';
 
@@ -29,6 +28,7 @@ const getCredentials = () => {
 const callFlickr = async <T>(
   method: string,
   params: Record<string, string>,
+  init: RequestInit = { next: { revalidate: REVALIDATE_SECONDS } },
 ): Promise<T> => {
   const { apiKey, userId } = getCredentials();
   const url = new URL(API_URL);
@@ -41,7 +41,7 @@ const callFlickr = async <T>(
     ...params,
   }).toString();
 
-  const res = await fetch(url, { next: { revalidate: REVALIDATE_SECONDS } });
+  const res = await fetch(url, init);
   if (!res.ok) {
     throw new Error(`Flickr ${method} failed with HTTP ${res.status}`);
   }
@@ -58,7 +58,7 @@ const callFlickr = async <T>(
 const PER_PAGE = 500;
 
 // Grid thumbnails (m), the larger sizes the lightbox picks from, and the
-// details shown in its info panel.
+// details shown in its info panel (EXIF is fetched separately, on demand).
 const PHOTO_EXTRAS = 'url_m,url_l,url_h,url_k,tags,date_taken';
 
 const fetchAllPages = async <T>(
@@ -186,7 +186,10 @@ const formatExif: Record<keyof typeof EXIF_FIELDS, (raw: string) => string> = {
 };
 
 // EXIF for one photo, or undefined if Flickr won't share it (the owner can
-// hide EXIF in their Flickr privacy settings) or the call fails.
+// hide EXIF in their Flickr privacy settings) or the call fails. Not stored
+// in Next's data cache: Flickr reports errors (rate limits included) with
+// HTTP 200, which would be cached like a success. The EXIF route caches
+// successful answers at the CDN instead.
 export const getExif = async (
   photoId: string,
 ): Promise<PhotoExif | undefined> => {
@@ -194,6 +197,7 @@ export const getExif = async (
     const { photo } = await callFlickr<FlickrExifResponse>(
       'flickr.photos.getExif',
       { photo_id: photoId },
+      { cache: 'no-store' },
     );
     const raw = (tags: string[]) =>
       tags
@@ -211,20 +215,4 @@ export const getExif = async (
   } catch {
     return undefined;
   }
-};
-
-// Concurrent getExif calls per page, to stay polite to Flickr's API.
-const EXIF_CONCURRENCY = 8;
-
-export const withExif = async (photos: FlickrPhoto[]): Promise<Photo[]> => {
-  const result: Photo[] = [...photos];
-  let next = 0;
-  const worker = async () => {
-    while (next < photos.length) {
-      const i = next++;
-      result[i] = { ...photos[i], exif: await getExif(photos[i].id) };
-    }
-  };
-  await Promise.all(Array.from({ length: EXIF_CONCURRENCY }, worker));
-  return result;
 };
