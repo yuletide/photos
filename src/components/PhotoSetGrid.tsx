@@ -1,6 +1,9 @@
 import { PhotoSet } from '@/components/PhotoSet';
 import { FlickrPhotoset } from '@/types/flickr';
 
+// Images above the fold load eagerly to keep LCP fast.
+const EAGER_COUNT = 6;
+
 export const PhotoSetGrid = ({
   photosets,
 }: {
@@ -12,8 +15,8 @@ export const PhotoSetGrid = ({
 
   return (
     <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4">
-      {photosets.map((set) => (
-        <PhotoSet key={set.id} set={set} />
+      {photosets.map((set, i) => (
+        <PhotoSet key={set.id} set={set} eager={i < EAGER_COUNT} />
       ))}
     </div>
   );

@@ -2,7 +2,13 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { FlickrPhotoset } from '@/types/flickr';
 
-export const PhotoSet = ({ set }: { set: FlickrPhotoset }) => {
+export const PhotoSet = ({
+  set,
+  eager = false,
+}: {
+  set: FlickrPhotoset;
+  eager?: boolean;
+}) => {
   const cover = set.primary_photo_extras;
 
   return (
@@ -14,6 +20,7 @@ export const PhotoSet = ({ set }: { set: FlickrPhotoset }) => {
             alt={set.title._content}
             width={cover.width_m}
             height={cover.height_m}
+            loading={eager ? 'eager' : 'lazy'}
             className="w-full h-auto group-hover:opacity-80 transition-opacity"
           />
         )}

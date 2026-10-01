@@ -33,7 +33,7 @@ const SetPage = async ({ params }: Props) => {
       </h2>
       <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4">
         {photos.map(
-          (photo) =>
+          (photo, i) =>
             photo.url_m && (
               <a
                 key={photo.id}
@@ -45,6 +45,7 @@ const SetPage = async ({ params }: Props) => {
                   alt={photo.title}
                   width={photo.width_m}
                   height={photo.height_m}
+                  loading={i < 6 ? 'eager' : 'lazy'}
                   className="w-full h-auto"
                 />
               </a>
