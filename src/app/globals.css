@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
   --background: #030712; /* gray-950 */
@@ -15,4 +15,30 @@
 body {
   background: var(--background);
   color: var(--foreground);
+}
+
+/* Lightbox info panel: make room for it instead of covering the photo.
+   Phones get a bottom sheet (45dvh tall), wider screens a right column. */
+.photo-info-open .yarl__toolbar {
+  z-index: 1; /* keep (i) and close above the panel */
+}
+.photo-info-open .yarl__slide {
+  padding-bottom: calc(45dvh + 16px);
+}
+.photo-info-open .yarl__navigation_prev,
+.photo-info-open .yarl__navigation_next {
+  top: 27.5dvh; /* centered on the photo above the sheet */
+}
+@media (min-width: 48rem) {
+  .photo-info-open .yarl__slide {
+    padding-bottom: 16px;
+    padding-right: calc(18rem + 16px);
+  }
+  .photo-info-open .yarl__navigation_prev,
+  .photo-info-open .yarl__navigation_next {
+    top: 50%;
+  }
+  .photo-info-open .yarl__navigation_next {
+    right: 18rem;
+  }
 }

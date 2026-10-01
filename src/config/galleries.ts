@@ -1,11 +1,14 @@
 export interface GalleryCategory {
   name: string;
   slug: string;
+  // Flickr album IDs shown as album tiles.
   photosetIds: string[];
+  // Photos tagged with ALL of these Flickr tags are shown directly, below
+  // any albums. Tag in Lightroom (keywords) and they appear within the hour.
+  tags?: string[];
 }
 
 // This is where you'll manually configure your galleries.
-// The photosetIds are the IDs of your Flickr albums.
 export const galleryConfig: GalleryCategory[] = [
   {
     name: 'Travel',
@@ -20,9 +23,15 @@ export const galleryConfig: GalleryCategory[] = [
     name: 'Concerts',
     slug: 'concerts',
     photosetIds: [
-      '72177720327288509', // Example: "Taylor Swift"
+      '72177720327288509', // Example: "Pessimiste 2026"
       '72177720316800271',
     ],
+  },
+  {
+    name: 'Flowers',
+    slug: 'flowers',
+    photosetIds: [],
+    tags: ['flowers', 'gallery'],
   },
   {
     name: 'Best Of',
