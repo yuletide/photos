@@ -134,13 +134,55 @@ const EXIF_FIELDS: Record<Exclude<keyof PhotoExif, 'camera'>, string[]> = {
   exposureBias: ['ExposureCompensation'],
 };
 
+// Flickr's raw EXIF values are usually bare ("1/160", "4.5", "25.0 mm"),
+// but cameras and Flickr's own formatting vary ("0.006 sec (1/160)",
+// "f/4.5", "-0.7 EV"), so each formatter normalizes before decorating.
+// An empty result means "don't show".
+
+// "25.0" -> "25", "17.0-50.0 mm" -> "17-50 mm"
+const trimZeros = (value: string) => value.replace(/(\d+)\.0\b/g, '$1');
+
+const parseNumber = (value: string) => {
+  const fraction = value.match(/^([+-]?)(\d+)\/(\d+)$/);
+  return fraction
+    ? Number(`${fraction[1]}1`) * (Number(fraction[2]) / Number(fraction[3]))
+    : Number(value);
+};
+
+// Exposure compensation in thirds of a stop: -0.7 -> "-2/3", -1.3 -> "-1 1/3".
+const formatStops = (value: number) => {
+  const thirds = Math.round(Math.abs(value) * 3);
+  const whole = Math.floor(thirds / 3);
+  const rest = thirds % 3 ? `${thirds % 3}/3` : '';
+  const sign = value < 0 ? '-' : '+';
+  return `${sign}${[whole || '', rest].filter(Boolean).join(' ')}`;
+};
+
 const formatExif: Record<keyof typeof EXIF_FIELDS, (raw: string) => string> = {
-  lens: (raw) => raw,
-  exposureTime: (raw) => `${raw} s`,
-  aperture: (raw) => `f/${raw.replace(/\.0$/, '')}`,
-  iso: (raw) => raw,
-  focalLength: (raw) => raw.replace('.0 mm', ' mm'),
-  exposureBias: (raw) => `${raw} EV`,
+  lens: (raw) => trimZeros(raw.trim()),
+  exposureTime: (raw) => {
+    // "0.006 sec (1/160)" -> "1/160"; "1/160", "1/160 s", "20" pass through.
+    const value = (raw.match(/\(([^)]+)\)/)?.[1] ?? raw)
+      .replace(/\s*(sec|s)\.?$/i, '')
+      .trim();
+    return value ? `${trimZeros(value)} s` : '';
+  },
+  aperture: (raw) => {
+    const value = raw.replace(/^f\//i, '').trim();
+    return value ? `f/${trimZeros(value)}` : '';
+  },
+  iso: (raw) => raw.replace(/^ISO\s*/i, '').trim(),
+  focalLength: (raw) => {
+    const value = parseFloat(raw);
+    return Number.isFinite(value) ? `${trimZeros(String(value))} mm` : '';
+  },
+  exposureBias: (raw) => {
+    const value = parseNumber(raw.replace(/\s*EV$/i, '').trim());
+    // Zero is the default; not worth showing.
+    return Number.isFinite(value) && Math.round(value * 3) !== 0
+      ? `${formatStops(value)} EV`
+      : '';
+  },
 };
 
 // EXIF for one photo, or undefined if Flickr won't share it (the owner can
@@ -162,10 +204,9 @@ export const getExif = async (
     for (const [field, tags] of Object.entries(EXIF_FIELDS)) {
       const key = field as keyof typeof EXIF_FIELDS;
       const value = raw(tags);
-      if (value) exif[key] = formatExif[key](value);
+      const formatted = value && formatExif[key](value);
+      if (formatted) exif[key] = formatted;
     }
-    // A zero exposure bias is the default; not worth showing.
-    if (exif.exposureBias?.startsWith('0 ')) delete exif.exposureBias;
     return exif;
   } catch {
     return undefined;

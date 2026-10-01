@@ -109,39 +109,85 @@ describe('flickr client', () => {
     expect(url.searchParams.get('user_id')).toBe('test-user-id');
   });
 
-  it('formats the EXIF fields shown in the lightbox', async () => {
-    const tag = (tag: string, raw: string) => ({
-      tagspace: 'ExifIFD',
-      tag,
-      label: tag,
-      raw: { _content: raw },
-    });
+  // Mock one getExif response. Entries are [tag, raw, clean?], shaped like
+  // real Flickr payloads.
+  const mockExif = (camera: string, entries: [string, string, string?][]) =>
     mockFetch.mockResolvedValue(
       jsonResponse({
         stat: 'ok',
         photo: {
           id: 'p1',
-          camera: 'Panasonic DMC-GX85',
-          exif: [
-            tag('ExposureTime', '1/250'),
-            tag('FNumber', '8.0'),
-            tag('ISO', '1600'),
-            tag('FocalLength', '25.0 mm'),
-            tag('ExposureCompensation', '0'),
-            tag('LensModel', 'LUMIX G 25/F1.7'),
-          ],
+          camera,
+          exif: entries.map(([tag, raw, clean]) => ({
+            tagspace: 'ExifIFD',
+            tag,
+            label: tag,
+            raw: { _content: raw },
+            ...(clean && { clean: { _content: clean } }),
+          })),
         },
       }),
     );
 
+  it('formats the EXIF fields shown in the lightbox', async () => {
+    // As returned by Flickr for an OM-1 photo.
+    mockExif('OM Digital Solutions OM-1', [
+      ['ExposureTime', '1/125', '0.008 sec (1/125)'],
+      ['FNumber', '8.0', 'f/8.0'],
+      ['ISO', '2000'],
+      ['FocalLength', '25.0 mm', '25 mm'],
+      ['ExposureCompensation', '0', '0 EV'],
+      ['LensModel', 'OLYMPUS M.25mm F1.8'],
+    ]);
+
     await expect(getExif('p1')).resolves.toEqual({
-      camera: 'Panasonic DMC-GX85',
-      lens: 'LUMIX G 25/F1.7',
-      exposureTime: '1/250 s',
+      camera: 'OM Digital Solutions OM-1',
+      lens: 'OLYMPUS M.25mm F1.8',
+      exposureTime: '1/125 s',
       aperture: 'f/8',
-      iso: '1600',
+      iso: '2000',
       focalLength: '25 mm',
     });
+  });
+
+  it('normalizes values that arrive already formatted', async () => {
+    mockExif('Canon EOS 20D', [
+      ['ExposureTime', '0.006 sec (1/160)'],
+      ['FNumber', 'f/4.5'],
+      ['ISO', 'ISO 400'],
+      ['FocalLength', '17 mm'],
+      ['ExposureCompensation', '-2/3 EV'],
+      ['Lens', '17.0-50.0 mm'],
+    ]);
+
+    await expect(getExif('p1')).resolves.toEqual({
+      camera: 'Canon EOS 20D',
+      lens: '17-50 mm',
+      exposureTime: '1/160 s',
+      aperture: 'f/4.5',
+      iso: '400',
+      focalLength: '17 mm',
+      exposureBias: '-2/3 EV',
+    });
+  });
+
+  it.each([
+    ['-0.7', '-2/3 EV'],
+    ['-0.3', '-1/3 EV'],
+    ['+0.3', '+1/3 EV'],
+    ['+1/3', '+1/3 EV'],
+    ['-1', '-1 EV'],
+    ['-1.7', '-1 2/3 EV'],
+    ['-3.7', '-3 2/3 EV'],
+    ['+0', undefined],
+  ])('shows exposure compensation %s as %s', async (raw, expected) => {
+    mockExif('', [['ExposureCompensation', raw]]);
+    expect((await getExif('p1'))?.exposureBias).toBe(expected);
+  });
+
+  it('shows long exposures in seconds', async () => {
+    mockExif('', [['ExposureTime', '20']]);
+    expect((await getExif('p1'))?.exposureTime).toBe('20 s');
   });
 
   it('returns no EXIF when Flickr hides it', async () => {
