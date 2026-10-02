@@ -16,6 +16,9 @@ const photo = (id: string, extra = {}) => ({
 
 const photos = [
   photo('a', {
+    url_h: 'https://example.com/a_h.jpg',
+    width_h: 1600,
+    height_h: 1067,
     url_k: 'https://example.com/a_k.jpg',
     width_k: 2048,
     height_k: 1365,

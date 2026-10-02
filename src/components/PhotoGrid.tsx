@@ -1,11 +1,14 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useState, type MouseEvent } from 'react';
+import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import Lightbox, {
   IconButton,
+  ImageSlide,
   createIcon,
+  useLightboxProps,
   useLightboxState,
+  type RenderSlideProps,
   type SlideImage,
 } from 'yet-another-react-lightbox';
 import 'yet-another-react-lightbox/styles.css';
@@ -91,6 +94,56 @@ const InfoPanelContent = ({ photo }: { photo: FlickrPhoto }) => (
   <PhotoInfo photo={photo} exif={useExif(photo.id)} />
 );
 
+// Flickr's CDN answers 429 when large images are requested in bursts. A slide
+// whose image fails retries after 1s, 2s, then 4s; if it still fails, it
+// shows the 1024px version rather than a broken-image icon.
+const RETRY_DELAYS = [1000, 2000, 4000];
+
+const RetryingSlide = ({
+  slide,
+  offset,
+  rect,
+  onCurrentLoad,
+}: RenderSlideProps & { onCurrentLoad: () => void }) => {
+  const { carousel } = useLightboxProps();
+  const [attempt, setAttempt] = useState(0);
+  const retry = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(retry.current), []);
+
+  if (!('photo' in slide) || !slide.photo) return undefined;
+  const { photo } = slide;
+  const gaveUp = attempt > RETRY_DELAYS.length;
+  const shown: SlideImage =
+    gaveUp && photo.url_l
+      ? {
+          src: photo.url_l,
+          width: Number(photo.width_l),
+          height: Number(photo.height_l),
+          alt: slide.alt,
+        }
+      : slide;
+
+  return (
+    <ImageSlide
+      // A new key remounts the <img>, which makes the browser request it again.
+      key={attempt}
+      slide={shown}
+      offset={offset}
+      rect={rect}
+      imageFit={carousel.imageFit}
+      imageProps={carousel.imageProps}
+      onLoad={() => offset === 0 && onCurrentLoad()}
+      onError={() => {
+        if (gaveUp) return;
+        retry.current = setTimeout(
+          () => setAttempt((a) => a + 1),
+          RETRY_DELAYS[attempt] ?? 0,
+        );
+      }}
+    />
+  );
+};
+
 // Info for the current slide: a right-hand column on wide screens (the photo
 // shrinks to make room, see globals.css) and a bottom sheet on phones.
 const InfoPanel = () => {
@@ -130,6 +183,8 @@ const isPlainClick = (e: MouseEvent) =>
 export const PhotoGrid = ({ photos }: { photos: FlickrPhoto[] }) => {
   const [index, setIndex] = useState(-1);
   const [showInfo, setShowInfo] = useState(false);
+  // Whether the photo on screen has loaded; neighbors preload only after.
+  const [currentLoaded, setCurrentLoaded] = useState(false);
   const shown = photos.filter((photo) => photo.url_m);
   const open = index >= 0;
 
@@ -162,6 +217,7 @@ export const PhotoGrid = ({ photos }: { photos: FlickrPhoto[] }) => {
               if (!isPlainClick(e)) return;
               e.preventDefault();
               setShowInfo(readInfoPref());
+              setCurrentLoaded(false);
               setIndex(i);
             }}
             className="block break-inside-avoid hover:opacity-80 transition-opacity"
@@ -182,6 +238,9 @@ export const PhotoGrid = ({ photos }: { photos: FlickrPhoto[] }) => {
         index={index}
         close={() => setIndex(-1)}
         slides={shown.map(toSlide)}
+        // Load the current photo first; neighbors only once it has arrived,
+        // so large images aren't all requested at once.
+        carousel={{ preload: currentLoaded ? 2 : 0 }}
         toolbar={{
           buttons: [
             <IconButton
@@ -195,7 +254,16 @@ export const PhotoGrid = ({ photos }: { photos: FlickrPhoto[] }) => {
           ],
         }}
         className={showInfo ? 'photo-info-open' : undefined}
-        render={{ controls: () => (showInfo ? <InfoPanel /> : null) }}
+        render={{
+          controls: () => (showInfo ? <InfoPanel /> : null),
+          slide: (props) => (
+            <RetryingSlide
+              key={props.slide.src}
+              {...props}
+              onCurrentLoad={() => setCurrentLoaded(true)}
+            />
+          ),
+        }}
       />
     </>
   );
