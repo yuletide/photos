@@ -28,6 +28,7 @@ const mockFetch = vi.fn();
 describe('PhotoGrid', () => {
   beforeEach(() => {
     localStorage.clear();
+    window.history.replaceState(null, '', '/sets/1');
     vi.stubGlobal('fetch', mockFetch);
     mockFetch.mockResolvedValue(Response.json(null));
   });
@@ -128,5 +129,51 @@ describe('PhotoGrid', () => {
     expect(screen.getByText('flowers')).toBeTruthy();
     await vi.waitFor(() => expect(mockFetch).toHaveBeenCalled());
     expect(screen.queryByText('Shutter')).toBeNull();
+  });
+
+  it('puts the open photo in the URL', () => {
+    render(<PhotoGrid photos={photos} />);
+    fireEvent.click(screen.getAllByRole('link')[1]);
+    expect(window.location.search).toBe('?photo=b');
+    expect(screen.getByRole('dialog')).toBeTruthy();
+  });
+
+  it('opens the photo from a shared link', () => {
+    window.history.replaceState(null, '', '/sets/1?photo=b');
+    render(<PhotoGrid photos={photos} />);
+    expect(screen.getByRole('dialog')).toBeTruthy();
+    expect(screen.getByRole('img', { name: 'Photo b' })).toBeTruthy();
+  });
+
+  it('removes the photo from the URL when a shared link is closed', async () => {
+    window.history.replaceState(null, '', '/sets/1?photo=a');
+    render(<PhotoGrid photos={photos} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    // The lightbox calls close() after its fade-out animation.
+    await vi.waitFor(() => expect(window.location.search).toBe(''));
+  });
+
+  it('ignores links to photos that are not on the page', () => {
+    window.history.replaceState(null, '', '/sets/1?photo=gone');
+    render(<PhotoGrid photos={photos} />);
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('changing photos replaces history, and closing goes back to the gallery', async () => {
+    render(<PhotoGrid photos={photos} />);
+    const start = window.history.length;
+
+    fireEvent.click(screen.getAllByRole('link')[0]);
+    expect(window.location.search).toBe('?photo=a');
+    expect(window.history.length).toBe(start + 1);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await vi.waitFor(() => expect(window.location.search).toBe('?photo=b'));
+    expect(window.history.length).toBe(start + 1); // replaced, not pushed
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    // Closing a photo opened from the grid goes Back (popstate) to /sets/1.
+    await vi.waitFor(() => expect(window.location.search).toBe(''));
+    await vi.waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
   });
 });

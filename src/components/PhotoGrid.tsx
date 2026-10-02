@@ -1,7 +1,13 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useState, type MouseEvent } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type MouseEvent,
+} from 'react';
 import Lightbox, {
   IconButton,
   createIcon,
@@ -123,20 +129,75 @@ const writeInfoPref = (show: boolean) => {
   }
 };
 
+// The open photo lives in the URL (?photo=<id>), so every photo has a link
+// that can be shared or bookmarked, and the back button closes the lightbox.
+const PHOTO_PARAM = 'photo';
+const urlListeners = new Set<() => void>();
+
+const subscribeToUrl = (listener: () => void) => {
+  urlListeners.add(listener);
+  window.addEventListener('popstate', listener);
+  return () => {
+    urlListeners.delete(listener);
+    window.removeEventListener('popstate', listener);
+  };
+};
+
+const readPhotoParam = () =>
+  new URLSearchParams(window.location.search).get(PHOTO_PARAM);
+
+const writePhotoParam = (photoId: string | null, mode: 'push' | 'replace') => {
+  const url = new URL(window.location.href);
+  if (photoId) url.searchParams.set(PHOTO_PARAM, photoId);
+  else url.searchParams.delete(PHOTO_PARAM);
+  if (url.href === window.location.href) return;
+  // Next.js supports the native History API and keeps its router in sync.
+  if (mode === 'push') window.history.pushState(null, '', url);
+  else window.history.replaceState(null, '', url);
+  urlListeners.forEach((listener) => listener());
+};
+
 // Let cmd/ctrl/shift-click and middle-click open the image in a new tab.
 const isPlainClick = (e: MouseEvent) =>
   e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
 
 export const PhotoGrid = ({ photos }: { photos: FlickrPhoto[] }) => {
-  const [index, setIndex] = useState(-1);
-  const [showInfo, setShowInfo] = useState(false);
   const shown = photos.filter((photo) => photo.url_m);
+  // The server (and first client render) never has a photo open.
+  const photoId = useSyncExternalStore(
+    subscribeToUrl,
+    readPhotoParam,
+    () => null,
+  );
+  const index = photoId ? shown.findIndex((p) => p.id === photoId) : -1;
   const open = index >= 0;
+  // Whether we added the history entry for the open photo; if so, closing
+  // goes back to it rather than piling up entries.
+  const pushedEntry = useRef(false);
+
+  const openPhoto = (photo: FlickrPhoto) => {
+    pushedEntry.current = true;
+    writePhotoParam(photo.id, 'push');
+  };
+
+  const close = () => {
+    if (pushedEntry.current) {
+      pushedEntry.current = false;
+      window.history.back();
+    } else {
+      writePhotoParam(null, 'replace');
+    }
+  };
+
+  // null = follow the viewer's saved preference.
+  const [infoChoice, setInfoChoice] = useState<boolean | null>(null);
+  const showInfo = open && (infoChoice ?? readInfoPref());
 
   const toggleInfo = () =>
-    setShowInfo((show) => {
-      writeInfoPref(!show);
-      return !show;
+    setInfoChoice((choice) => {
+      const next = !(choice ?? readInfoPref());
+      writeInfoPref(next);
+      return next;
     });
 
   // "i" toggles the info panel while the lightbox is open.
@@ -161,8 +222,7 @@ export const PhotoGrid = ({ photos }: { photos: FlickrPhoto[] }) => {
             onClick={(e) => {
               if (!isPlainClick(e)) return;
               e.preventDefault();
-              setShowInfo(readInfoPref());
-              setIndex(i);
+              openPhoto(photo);
             }}
             className="block break-inside-avoid hover:opacity-80 transition-opacity"
           >
@@ -180,8 +240,12 @@ export const PhotoGrid = ({ photos }: { photos: FlickrPhoto[] }) => {
       <Lightbox
         open={open}
         index={index}
-        close={() => setIndex(-1)}
+        close={close}
         slides={shown.map(toSlide)}
+        on={{
+          view: ({ index: viewed }) =>
+            shown[viewed] && writePhotoParam(shown[viewed].id, 'replace'),
+        }}
         toolbar={{
           buttons: [
             <IconButton
