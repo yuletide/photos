@@ -14,6 +14,7 @@ export const AutoHideHeader = ({ children }: { children: ReactNode }) => {
   const header = useRef<HTMLElement>(null);
 
   useEffect(() => {
+    lastY.current = window.scrollY;
     let frame = 0;
     const onScroll = () => {
       cancelAnimationFrame(frame);
