@@ -98,7 +98,7 @@ const InfoPanel = () => {
   const photo = currentSlide && 'photo' in currentSlide && currentSlide.photo;
   if (!photo) return null;
   return (
-    <aside className="absolute inset-x-0 bottom-0 h-[35dvh] overflow-y-auto bg-neutral-900 px-5 py-4 md:inset-y-0 md:left-auto md:h-auto md:w-64 md:px-6 md:pt-20">
+    <aside className="absolute inset-x-0 bottom-0 h-[45dvh] overflow-y-auto border-t border-white/10 bg-neutral-950 p-5 md:inset-y-0 md:left-auto md:h-auto md:w-72 md:border-l md:border-t-0 md:px-6 md:pt-20">
       <InfoPanelContent photo={photo} />
     </aside>
   );
