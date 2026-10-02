@@ -28,10 +28,10 @@ export const galleryConfig: GalleryCategory[] = [
     ],
   },
   {
-    name: 'Flowers',
-    slug: 'flowers',
+    name: 'Botanical',
+    slug: 'botanical',
     photosetIds: [],
-    tags: ['flowers', 'gallery'],
+    tags: ['botanical', 'gallery'],
   },
   {
     name: 'Best Of',
