@@ -132,4 +132,16 @@ describe('PhotoGrid', () => {
     await vi.waitFor(() => expect(mockFetch).toHaveBeenCalled());
     expect(screen.queryByText('Shutter')).toBeNull();
   });
+
+  it('shows the small version right away when a large image fails', () => {
+    render(<PhotoGrid photos={photos} />);
+    fireEvent.click(screen.getAllByRole('link')[0]);
+    const img = () =>
+      document.querySelector<HTMLImageElement>('.yarl__slide_current img')!;
+    expect(img().getAttribute('src')).toBe('https://example.com/a_k.jpg');
+
+    fireEvent.error(img());
+    expect(img().getAttribute('src')).toBe('https://example.com/a_m.jpg');
+    expect(document.querySelector('.yarl__slide_error')).toBeNull();
+  });
 });

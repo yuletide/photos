@@ -94,10 +94,48 @@ const InfoPanelContent = ({ photo }: { photo: FlickrPhoto }) => (
   <PhotoInfo photo={photo} exif={useExif(photo.id)} />
 );
 
-// Flickr's CDN answers 429 when large images are requested in bursts. A slide
-// whose image fails retries after 1s, 2s, then 4s; if it still fails, it
-// shows the 1024px version rather than a broken-image icon.
+// Flickr's CDN can refuse large images (429 when requests come in bursts,
+// and on some iOS Safari + Private Relay setups). If a slide's image fails,
+// show the 500px version right away (already cached from the grid), then
+// upgrade in the background: 1024px first, then 2048px (or 1600px), each with
+// 1s/2s/4s backoff. No broken-image icon while that happens.
 const RETRY_DELAYS = [1000, 2000, 4000];
+// 1024px first (quick, usually allowed), then the full-resolution sizes.
+const UPGRADE_SIZES = ['l', 'k', 'h'] as const;
+
+const sizedSlide = (
+  photo: FlickrPhoto,
+  size: 'm' | 'l' | 'h' | 'k',
+  alt?: string,
+): SlideImage | undefined => {
+  const src = photo[`url_${size}`];
+  return src
+    ? {
+        src,
+        width: Number(photo[`width_${size}`]),
+        height: Number(photo[`height_${size}`]),
+        alt,
+        photo,
+      }
+    : undefined;
+};
+
+// Resolves true once `src` loads, retrying with backoff; false if it never does.
+export const loadWithRetry = (src: string, cancelled: () => boolean) =>
+  new Promise<boolean>((resolve) => {
+    let attempt = 0;
+    const tryOnce = () => {
+      if (cancelled()) return resolve(false);
+      const img = new window.Image(); // not next/image's Image
+      img.onload = () => resolve(true);
+      img.onerror = () => {
+        if (attempt >= RETRY_DELAYS.length) return resolve(false);
+        setTimeout(tryOnce, RETRY_DELAYS[attempt++]);
+      };
+      img.src = src;
+    };
+    tryOnce();
+  });
 
 const RetryingSlide = ({
   slide,
@@ -106,40 +144,45 @@ const RetryingSlide = ({
   onCurrentLoad,
 }: RenderSlideProps & { onCurrentLoad: () => void }) => {
   const { carousel } = useLightboxProps();
-  const [attempt, setAttempt] = useState(0);
-  const retry = useRef<ReturnType<typeof setTimeout>>(undefined);
-  useEffect(() => () => clearTimeout(retry.current), []);
+  const photo = 'photo' in slide ? slide.photo : undefined;
+  const [failed, setFailed] = useState(false);
+  const [upgraded, setUpgraded] = useState<SlideImage>();
 
-  if (!('photo' in slide) || !slide.photo) return undefined;
-  const { photo } = slide;
-  const gaveUp = attempt > RETRY_DELAYS.length;
-  const shown: SlideImage =
-    gaveUp && photo.url_l
-      ? {
-          src: photo.url_l,
-          width: Number(photo.width_l),
-          height: Number(photo.height_l),
-          alt: slide.alt,
+  useEffect(() => {
+    if (!failed || !photo) return;
+    let cancelled = false;
+    (async () => {
+      for (const size of UPGRADE_SIZES) {
+        const candidate = sizedSlide(photo, size, slide.alt);
+        if (
+          candidate &&
+          (await loadWithRetry(candidate.src, () => cancelled))
+        ) {
+          if (cancelled) return;
+          setUpgraded(candidate);
+          if (size !== 'l') return; // Full resolution: done.
         }
-      : slide;
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [failed, photo, slide.alt]);
+
+  if (!photo) return undefined;
+  const shown =
+    upgraded ?? (failed ? (sizedSlide(photo, 'm', slide.alt) ?? slide) : slide);
 
   return (
     <ImageSlide
-      // A new key remounts the <img>, which makes the browser request it again.
-      key={attempt}
+      key={shown.src}
       slide={shown}
       offset={offset}
       rect={rect}
       imageFit={carousel.imageFit}
       imageProps={carousel.imageProps}
       onLoad={() => offset === 0 && onCurrentLoad()}
-      onError={() => {
-        if (gaveUp) return;
-        retry.current = setTimeout(
-          () => setAttempt((a) => a + 1),
-          RETRY_DELAYS[attempt] ?? 0,
-        );
-      }}
+      onError={() => setFailed(true)}
     />
   );
 };
