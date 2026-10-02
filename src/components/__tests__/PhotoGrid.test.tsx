@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { PhotoGrid } from '../PhotoGrid';
+import { PhotoGrid, sizeLabel } from '../PhotoGrid';
 
 const photo = (id: string, extra = {}) => ({
   id,
@@ -143,5 +143,12 @@ describe('PhotoGrid', () => {
     fireEvent.error(img());
     expect(img().getAttribute('src')).toBe('https://example.com/a_m.jpg');
     expect(document.querySelector('.yarl__slide_error')).toBeNull();
+  });
+
+  it('labels Flickr sizes for the debug badge', () => {
+    expect(sizeLabel('https://x/1_abc_k.jpg')).toBe('2048px');
+    expect(sizeLabel('https://x/1_abc_b.jpg')).toBe('1024px');
+    expect(sizeLabel('https://x/1_abc.jpg')).toBe('500px');
+    expect(sizeLabel('')).toBe('loading');
   });
 });

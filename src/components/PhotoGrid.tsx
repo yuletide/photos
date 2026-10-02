@@ -121,7 +121,11 @@ const sizedSlide = (
 };
 
 // Resolves true once `src` loads, retrying with backoff; false if it never does.
-export const loadWithRetry = (src: string, cancelled: () => boolean) =>
+export const loadWithRetry = (
+  src: string,
+  cancelled: () => boolean,
+  onRetry: () => void = () => {},
+) =>
   new Promise<boolean>((resolve) => {
     let attempt = 0;
     const tryOnce = () => {
@@ -130,6 +134,7 @@ export const loadWithRetry = (src: string, cancelled: () => boolean) =>
       img.onload = () => resolve(true);
       img.onerror = () => {
         if (attempt >= RETRY_DELAYS.length) return resolve(false);
+        onRetry();
         setTimeout(tryOnce, RETRY_DELAYS[attempt++]);
       };
       img.src = src;
@@ -147,22 +152,32 @@ const RetryingSlide = ({
   const photo = 'photo' in slide ? slide.photo : undefined;
   const [failed, setFailed] = useState(false);
   const [upgraded, setUpgraded] = useState<SlideImage>();
+  // For the ?debug badge: what's on screen and how the upgrade is going.
+  const [loadedSrc, setLoadedSrc] = useState('');
+  const [retries, setRetries] = useState(0);
+  const [upgrading, setUpgrading] = useState(false);
 
   useEffect(() => {
     if (!failed || !photo) return;
     let cancelled = false;
     (async () => {
+      setUpgrading(true);
       for (const size of UPGRADE_SIZES) {
         const candidate = sizedSlide(photo, size, slide.alt);
         if (
           candidate &&
-          (await loadWithRetry(candidate.src, () => cancelled))
+          (await loadWithRetry(
+            candidate.src,
+            () => cancelled,
+            () => setRetries((n) => n + 1),
+          ))
         ) {
           if (cancelled) return;
           setUpgraded(candidate);
-          if (size !== 'l') return; // Full resolution: done.
+          if (size !== 'l') break; // Full resolution: done.
         }
       }
+      if (!cancelled) setUpgrading(false);
     })();
     return () => {
       cancelled = true;
@@ -174,18 +189,76 @@ const RetryingSlide = ({
     upgraded ?? (failed ? (sizedSlide(photo, 'm', slide.alt) ?? slide) : slide);
 
   return (
-    <ImageSlide
-      key={shown.src}
-      slide={shown}
-      offset={offset}
-      rect={rect}
-      imageFit={carousel.imageFit}
-      imageProps={carousel.imageProps}
-      onLoad={() => offset === 0 && onCurrentLoad()}
-      onError={() => setFailed(true)}
-    />
+    <>
+      <ImageSlide
+        key={shown.src}
+        slide={shown}
+        offset={offset}
+        rect={rect}
+        imageFit={carousel.imageFit}
+        imageProps={carousel.imageProps}
+        onLoad={(img) => {
+          setLoadedSrc(img.currentSrc || img.src);
+          if (offset === 0) onCurrentLoad();
+        }}
+        onError={() => setFailed(true)}
+      />
+      {offset === 0 && showDebug() && (
+        <DebugBadge
+          src={loadedSrc}
+          failed={failed}
+          upgrading={upgrading}
+          retries={retries}
+        />
+      )}
+    </>
   );
 };
+
+// Add ?debug to the URL to see which Flickr size the lightbox is showing and
+// whether it had to fall back or retry. Handy for checking on a phone.
+const showDebug = () => {
+  try {
+    return new URLSearchParams(window.location.search).has('debug');
+  } catch {
+    return false;
+  }
+};
+
+const SIZE_LABELS: Record<string, string> = {
+  k: '2048px',
+  h: '1600px',
+  b: '1024px',
+};
+
+export const sizeLabel = (src: string) => {
+  const suffix = src.match(/_([a-z])\.jpg$/)?.[1];
+  if (!src) return 'loading';
+  return (suffix && SIZE_LABELS[suffix]) ?? '500px';
+};
+
+const DebugBadge = ({
+  src,
+  failed,
+  upgrading,
+  retries,
+}: {
+  src: string;
+  failed: boolean;
+  upgrading: boolean;
+  retries: number;
+}) => (
+  <div className="pointer-events-none absolute left-3 top-3 z-10 rounded bg-black/70 px-2 py-1 font-mono text-[11px] text-white">
+    {[
+      sizeLabel(src),
+      failed && 'fallback',
+      upgrading && 'upgrading…',
+      retries > 0 && `${retries} retr${retries === 1 ? 'y' : 'ies'}`,
+    ]
+      .filter(Boolean)
+      .join(' · ')}
+  </div>
+);
 
 // Info for the current slide: a right-hand column on wide screens (the photo
 // shrinks to make room, see globals.css) and a bottom sheet on phones.
