@@ -39,4 +39,17 @@ describe('AutoHideHeader', () => {
     await scrollTo(40);
     expect(screen.getByRole('banner').className).toContain('translate-y-0');
   });
+
+  it('shows on the first upward scroll from a restored position', async () => {
+    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(80);
+    window.scrollY = 500;
+    render(<AutoHideHeader>x</AutoHideHeader>);
+
+    await scrollTo(450);
+
+    expect(screen.getByRole('banner').className).toContain('translate-y-0');
+    expect(screen.getByRole('banner').className).not.toContain(
+      '-translate-y-full',
+    );
+  });
 });
