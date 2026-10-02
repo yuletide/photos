@@ -1,10 +1,20 @@
+import { LatestPhoto } from '@/components/LatestPhoto';
 import { PhotoSetGrid } from '@/components/PhotoSetGrid';
 import { filterPhotosetsByConfig } from '@/config/galleries';
 import { getPhotosets } from '@/lib/flickr';
+import { getLatestPhoto } from '@/lib/published';
 
 const Home = async () => {
-  const photosets = filterPhotosetsByConfig(await getPhotosets());
-  return <PhotoSetGrid photosets={photosets} />;
+  const [photosets, latest] = await Promise.all([
+    getPhotosets().then((sets) => filterPhotosetsByConfig(sets)),
+    getLatestPhoto(),
+  ]);
+  return (
+    <>
+      {latest && <LatestPhoto latest={latest} />}
+      <PhotoSetGrid photosets={photosets} />
+    </>
+  );
 };
 
 export default Home;

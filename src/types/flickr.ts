@@ -21,6 +21,7 @@ export interface FlickrPhoto {
   tags?: string; // Space-separated, normalized Flickr tags
   datetaken?: string; // "YYYY-MM-DD HH:MM:SS", camera local time
   datetakenunknown?: string | number; // 1 when Flickr has no taken date
+  dateupload?: string; // Unix seconds, as a string
 }
 
 // The handful of EXIF fields shown in the lightbox, already formatted.
