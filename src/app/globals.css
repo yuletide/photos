@@ -42,3 +42,33 @@ body {
     right: 18rem;
   }
 }
+
+/* Photo grid: justified rows. Each photo grows in proportion to its aspect
+   ratio (--ratio, set inline), so every photo in a row ends up the same
+   height and nothing is cropped. Rows read left to right. The ::after spacer
+   soaks up the slack on the last row so it isn't stretched. */
+.justified-rows {
+  --row-height: 110px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.justified-rows > * {
+  flex-grow: var(--ratio);
+  flex-basis: calc(var(--ratio) * var(--row-height));
+}
+.justified-rows::after {
+  content: '';
+  flex-grow: 1000000;
+}
+@media (min-width: 48rem) {
+  .justified-rows {
+    --row-height: 240px;
+    gap: 10px;
+  }
+}
+@media (min-width: 80rem) {
+  .justified-rows {
+    --row-height: 300px;
+  }
+}

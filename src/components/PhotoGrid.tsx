@@ -1,7 +1,12 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useState, type MouseEvent } from 'react';
+import {
+  type CSSProperties,
+  useEffect,
+  useState,
+  type MouseEvent,
+} from 'react';
 import Lightbox, {
   IconButton,
   createIcon,
@@ -153,10 +158,17 @@ export const PhotoGrid = ({ photos }: { photos: FlickrPhoto[] }) => {
 
   return (
     <>
-      <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4">
+      {/* Justified rows (see .justified-rows in globals.css): photos read left
+          to right, each row the same height, every photo uncropped. */}
+      <div className="justified-rows">
         {shown.map((photo, i) => (
           <a
             key={photo.id}
+            style={
+              {
+                '--ratio': Number(photo.width_m) / Number(photo.height_m) || 1,
+              } as CSSProperties
+            }
             href={toSlide(photo).src}
             onClick={(e) => {
               if (!isPlainClick(e)) return;
@@ -164,7 +176,7 @@ export const PhotoGrid = ({ photos }: { photos: FlickrPhoto[] }) => {
               setShowInfo(readInfoPref());
               setIndex(i);
             }}
-            className="block break-inside-avoid hover:opacity-80 transition-opacity"
+            className="block hover:opacity-80 transition-opacity"
           >
             <Image
               src={photo.url_m!}
