@@ -14,9 +14,10 @@ export const galleryConfig: GalleryCategory[] = [
     name: 'Travel',
     slug: 'travel',
     photosetIds: [
-      '72157673637437610', // Example: "Japan 2023"
-      '72177720327261716', // Example: "Iceland 2022"
-      '72157613054729173',
+      '72177720330587076', // "Japan Highlights"
+      '72157673637437610', // "Cuba Picks"
+      '72177720327261716', // "SOUTH AMERICA 2017"
+      '72157613054729173', // "Tradition" exhibition
     ],
   },
   {
