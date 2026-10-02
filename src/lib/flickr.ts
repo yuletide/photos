@@ -80,7 +80,7 @@ export const getPhotosets = async (): Promise<FlickrPhotoset[]> =>
       {
         page: String(page),
         per_page: String(PER_PAGE),
-        primary_photo_extras: 'url_m',
+        primary_photo_extras: 'url_m,url_l',
       },
     );
     return { items: res.photosets.photoset, pages: res.photosets.pages };
