@@ -71,10 +71,25 @@ describe('PhotoInfo', () => {
   it('turns Flickr description HTML into plain text', () => {
     expect(
       plainCaption(
-        'Line one<br />Line &amp; two &quot;quoted&quot; &#x2014; <b>bold</b>',
+        'Line one<br />Line &amp; two &quot;quoted&quot; <b>bold</b>',
       ),
-    ).toBe('Line one\nLine & two "quoted" \u2014 bold');
+    ).toBe('Line one\nLine & two "quoted" bold');
     expect(plainCaption('<script>alert(1)</script>ok')).toBe('alert(1)ok');
     expect(plainCaption(undefined)).toBe('');
+  });
+
+  it('decodes every HTML entity, including uppercase hex', () => {
+    expect(
+      plainCaption('Caf&eacute; &mdash; it&rsquo;s &#X2014; &#x2014;'),
+    ).toBe('Café — it’s — —');
+  });
+
+  it('does not throw on out-of-range character references', () => {
+    expect(() => plainCaption('a &#1114112; b &#x110000; c')).not.toThrow();
+    expect(plainCaption('a &#1114112; b')).toBe('a \uFFFD b');
+  });
+
+  it('keeps encoded markup as visible text', () => {
+    expect(plainCaption('&lt;b&gt;not bold&lt;/b&gt;')).toBe('<b>not bold</b>');
   });
 });
