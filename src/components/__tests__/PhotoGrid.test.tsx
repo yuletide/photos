@@ -158,4 +158,22 @@ describe('PhotoGrid', () => {
     render(<PhotoGrid photos={photos} />);
     expect(screen.queryByRole('dialog')).toBeNull();
   });
+
+  it('changing photos replaces history, and closing goes back to the gallery', async () => {
+    render(<PhotoGrid photos={photos} />);
+    const start = window.history.length;
+
+    fireEvent.click(screen.getAllByRole('link')[0]);
+    expect(window.location.search).toBe('?photo=a');
+    expect(window.history.length).toBe(start + 1);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await vi.waitFor(() => expect(window.location.search).toBe('?photo=b'));
+    expect(window.history.length).toBe(start + 1); // replaced, not pushed
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    // Closing a photo opened from the grid goes Back (popstate) to /sets/1.
+    await vi.waitFor(() => expect(window.location.search).toBe(''));
+    await vi.waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+  });
 });

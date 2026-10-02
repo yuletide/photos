@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { getPhotoset, getPhotosByTags } from '@/lib/flickr';
-import { allPhotosetIds } from '@/config/galleries';
+import { allPhotosetIds, galleryConfig } from '@/config/galleries';
 import { getLatestPhoto, isPublishedPhoto } from '../published';
 
 vi.mock('@/lib/flickr', () => ({
@@ -53,7 +53,7 @@ describe('getLatestPhoto', () => {
 
     await expect(getLatestPhoto()).resolves.toEqual({
       photo: photo('newest', '300'),
-      href: '/category/flowers',
+      href: `/category/${galleryConfig.find((c) => c.tags?.length)!.slug}`,
     });
   });
 

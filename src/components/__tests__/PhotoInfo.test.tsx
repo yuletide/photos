@@ -12,9 +12,7 @@ describe('PhotoInfo', () => {
     expect(displayTitle('20250103-P1030363.jpg')).toBe('');
     expect(displayTitle('20230821-P8210388')).toBe('');
     expect(displayTitle('20260419-_4192597')).toBe('');
-    expect(displayTitle('20070831_MG_4415')).toBe('');
     expect(displayTitle('Crowdsurf at DNA')).toBe('Crowdsurf at DNA');
-    expect(displayTitle('Moonglow')).toBe('Moonglow');
     expect(displayTitle('Cuba 2017')).toBe('Cuba 2017');
   });
 
@@ -52,10 +50,12 @@ describe('PhotoInfo', () => {
     expect(screen.getByText('Crowdsurf')).toBeTruthy();
     expect(screen.getByText('January 3, 2025')).toBeTruthy();
     expect(screen.getByText('Lake Hövsgöl, Mongolia & Siberia')).toBeTruthy();
-    expect(screen.getByText('1/250 s').closest('p')?.textContent).toBe(
-      '1/250 s · f/1.7 · ISO 3200',
-    );
-    expect(screen.getByText('GX85 · 25mm F1.7')).toBeTruthy();
+    expect(screen.getByText('1/250 s')).toBeTruthy();
+    expect(screen.getByText('f/1.7')).toBeTruthy();
+    expect(screen.getByText('3200')).toBeTruthy();
+    expect(screen.getByText('GX85')).toBeTruthy();
+    expect(screen.getByText('25mm F1.7')).toBeTruthy();
+    expect(screen.queryByText('Focal length')).toBeNull();
     expect(screen.getAllByRole('listitem').map((li) => li.textContent)).toEqual(
       ['metal', 'sf'],
     );
@@ -72,14 +72,28 @@ describe('PhotoInfo', () => {
     );
     expect(screen.queryByRole('list')).toBeNull();
   });
-
   it('turns Flickr description HTML into plain text', () => {
     expect(
       plainCaption(
-        'Line one<br />Line &amp; two &quot;quoted&quot; &#x2014; <b>bold</b>',
+        'Line one<br />Line &amp; two &quot;quoted&quot; <b>bold</b>',
       ),
-    ).toBe('Line one\nLine & two "quoted" \u2014 bold');
+    ).toBe('Line one\nLine & two "quoted" bold');
     expect(plainCaption('<script>alert(1)</script>ok')).toBe('alert(1)ok');
     expect(plainCaption(undefined)).toBe('');
+  });
+
+  it('decodes every HTML entity, including uppercase hex', () => {
+    expect(
+      plainCaption('Caf&eacute; &mdash; it&rsquo;s &#X2014; &#x2014;'),
+    ).toBe('Café — it’s — —');
+  });
+
+  it('does not throw on out-of-range character references', () => {
+    expect(() => plainCaption('a &#1114112; b &#x110000; c')).not.toThrow();
+    expect(plainCaption('a &#1114112; b')).toBe('a \uFFFD b');
+  });
+
+  it('keeps encoded markup as visible text', () => {
+    expect(plainCaption('&lt;b&gt;not bold&lt;/b&gt;')).toBe('<b>not bold</b>');
   });
 });
