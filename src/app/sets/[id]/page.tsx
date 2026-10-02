@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { PhotoGrid } from '@/components/PhotoGrid';
 import { allPhotosetIds } from '@/config/galleries';
 import { getPhotoset } from '@/lib/flickr';
+import { shareMetadata } from '@/lib/share';
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -16,8 +17,16 @@ export const generateMetadata = async ({
   params,
 }: Props): Promise<Metadata> => {
   const { id } = await params;
-  const { title } = await getPhotoset(id);
-  return { title };
+  const { title, photos } = await getPhotoset(id);
+  return {
+    title,
+    ...shareMetadata({
+      title,
+      description: `${photos.length} photographs by Alex Yule.`,
+      path: `/sets/${id}`,
+      image: photos.find((photo) => photo.url_m),
+    }),
+  };
 };
 
 const SetPage = async ({ params }: Props) => {

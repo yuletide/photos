@@ -8,6 +8,7 @@ import {
   getCategory,
 } from '@/config/galleries';
 import { getPhotosByTags, getPhotosets } from '@/lib/flickr';
+import { shareMetadata } from '@/lib/share';
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -21,7 +22,22 @@ export const generateMetadata = async ({
   params,
 }: Props): Promise<Metadata> => {
   const { slug } = await params;
-  return { title: getCategory(slug)?.name };
+  const category = getCategory(slug);
+  if (!category) return {};
+  // Preview with the first photo on the page: a tagged photo, else an album cover.
+  const image = category.tags?.length
+    ? (await getPhotosByTags(category.tags)).find((photo) => photo.url_m)
+    : filterPhotosetsByConfig(await getPhotosets(), slug)[0]
+        ?.primary_photo_extras;
+  return {
+    title: category.name,
+    ...shareMetadata({
+      title: category.name,
+      description: `${category.name} photographs by Alex Yule.`,
+      path: `/category/${slug}`,
+      image,
+    }),
+  };
 };
 
 const CategoryPage = async ({ params }: Props) => {
