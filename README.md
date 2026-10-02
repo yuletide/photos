@@ -49,10 +49,12 @@ only photos you've picked show up, not everything you've ever tagged
 `botanical`.
 
 Broad categories work well with a Lightroom keyword hierarchy: put
-`Flowers` and `Dead plants` under a `Botanical` parent and turn on **Export
-Containing Keywords** for `Botanical` (Keyword List → right-click → Edit
-Keyword Tag). A photo keyworded `Dead plants` then reaches Flickr tagged both
-`deadplants` and `botanical`.
+`Flowers` and `Dead plants` under a `Botanical` parent. In Keyword List →
+right-click → Edit Keyword Tag, turn on **Export Containing Keywords** for
+each child (`Flowers`, `Dead plants`) and keep **Include on Export** on for
+`Botanical` (both are on by default for new keywords). A photo keyworded
+`Dead plants` then reaches Flickr tagged both `deadplants` and `botanical`;
+the Keywording panel's **Will Export** view shows what will be sent.
 
 ### Adding photos from Lightroom Classic
 
