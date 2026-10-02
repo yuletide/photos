@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { LatestPhoto } from '../LatestPhoto';
+import { imageSizes, LatestPhoto } from '../LatestPhoto';
 
 const latest = {
   href: '/category/flowers',
@@ -34,7 +34,7 @@ describe('LatestPhoto', () => {
     expect(screen.getByText('September 27, 2007')).toBeTruthy();
   });
 
-  it('leaves out file-name titles', () => {
+  it('leaves out file-name titles, naming the link by its caption', () => {
     render(
       <LatestPhoto
         latest={{
@@ -44,5 +44,27 @@ describe('LatestPhoto', () => {
       />,
     );
     expect(screen.queryByText('P1030363.jpg')).toBeNull();
+    expect(
+      screen.getByRole('link', { name: 'Lake Hövsgöl, Mongolia' }),
+    ).toBeTruthy();
+  });
+
+  it('falls back to a generic link name', () => {
+    render(
+      <LatestPhoto
+        latest={{
+          ...latest,
+          photo: { ...latest.photo, title: '', description: { _content: '' } },
+        }}
+      />,
+    );
+    expect(screen.getByRole('link', { name: 'Latest photo' })).toBeTruthy();
+  });
+
+  it('sizes portraits by the height cap on wide screens', () => {
+    // 333x500 portrait: height-bound once the viewport is wider than 0.5:1.
+    expect(imageSizes(latest.photo)).toBe(
+      '(max-aspect-ratio: 500/1000) calc(100vw - 2rem), calc(75vh * 0.666)',
+    );
   });
 });

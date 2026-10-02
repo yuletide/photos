@@ -12,6 +12,16 @@ const srcSet = (photo: FlickrPhoto) =>
     return src ? [`${src} ${photo[`width_${size}`]}w`] : [];
   }).join(', ');
 
+// The rendered width is the smaller of the page width (100vw minus main's
+// 2rem padding) and 75vh x the photo's aspect ratio (the height cap). The
+// height cap binds once the viewport is wider than 0.75 x ratio, so express
+// that as an aspect-ratio media condition the browser can use to pick a size.
+export const imageSizes = (photo: FlickrPhoto) => {
+  const ratio = Number(photo.width_m) / Number(photo.height_m) || 1;
+  const switchAt = Math.round(0.75 * ratio * 1000);
+  return `(max-aspect-ratio: ${switchAt}/1000) calc(100vw - 2rem), calc(75vh * ${ratio.toFixed(3)})`;
+};
+
 // Pixelpost-style front page: the newest photo, large, with its caption.
 // Clicking it opens the photo in the lightbox on its album/category page.
 export const LatestPhoto = ({ latest }: { latest: PublishedPhoto }) => {
@@ -28,10 +38,11 @@ export const LatestPhoto = ({ latest }: { latest: PublishedPhoto }) => {
         <img
           src={photo.url_m}
           srcSet={srcSet(photo)}
-          sizes="(min-width: 64rem) 64rem, 100vw"
+          sizes={imageSizes(photo)}
           width={photo.width_m}
           height={photo.height_m}
-          alt={photo.title}
+          // The link's only content, so it names the link: never a file name.
+          alt={title || caption.split('\n')[0] || 'Latest photo'}
           fetchPriority="high"
           className="mx-auto h-auto max-h-[75vh] w-auto max-w-full"
         />
