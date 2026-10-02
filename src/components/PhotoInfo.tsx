@@ -23,10 +23,18 @@ export const displayTitle = (title: string) =>
 // Flickr descriptions are HTML (links, <br>, entities); show them as plain
 // text with line breaks kept, never as markup. Tags are stripped before
 // decoding, so an encoded "&lt;b&gt;" stays visible text rather than a tag.
-export const plainCaption = (html = '') =>
-  decodeHTML(html.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]*>/g, ''))
+// Placeholder descriptions some cameras write into every photo.
+const CAMERA_DEFAULTS =
+  /^(olympus digital camera|sony dsc|digital camera|kodak digital still camera|dcim|default)$/i;
+
+export const plainCaption = (html = '') => {
+  const text = decodeHTML(
+    html.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]*>/g, ''),
+  )
     .replace(/\n{3,}/g, '\n\n')
     .trim();
+  return CAMERA_DEFAULTS.test(text) ? '' : text;
+};
 
 const formatDate = (photo: FlickrPhoto) => {
   if (!photo.datetaken || Number(photo.datetakenunknown)) return '';
