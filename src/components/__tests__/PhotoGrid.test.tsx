@@ -142,6 +142,27 @@ describe('PhotoGrid', () => {
     expect(screen.getByRole('dialog')).toBeTruthy();
   });
 
+  it('uses one history entry while navigating and closing the lightbox', async () => {
+    render(<PhotoGrid photos={photos} />);
+    const initialHistoryLength = window.history.length;
+    const back = vi.spyOn(window.history, 'back');
+
+    fireEvent.click(screen.getAllByRole('link')[0]);
+    expect(window.location.search).toBe('?photo=a');
+    expect(window.history.length).toBe(initialHistoryLength + 1);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await vi.waitFor(() => expect(window.location.search).toBe('?photo=b'));
+    expect(window.history.length).toBe(initialHistoryLength + 1);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    await vi.waitFor(() => {
+      expect(back).toHaveBeenCalledOnce();
+      expect(window.location.search).toBe('');
+      expect(screen.queryByRole('dialog')).toBeNull();
+    });
+  });
+
   it('opens the photo from a shared link', () => {
     window.history.replaceState(null, '', '/sets/1?photo=b');
     render(<PhotoGrid photos={photos} />);
