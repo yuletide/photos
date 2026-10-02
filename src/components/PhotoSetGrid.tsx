@@ -1,31 +1,34 @@
-import { PhotoSet } from '@/components/PhotoSet';
+import { photosetTile } from '@/components/PhotoSet';
+import { Tile, TileData } from '@/components/Tile';
 import { FlickrPhotoset } from '@/types/flickr';
 
 // Images above the fold load eagerly to keep LCP fast.
 const EAGER_COUNT = 6;
 
-export const PhotoSetGrid = ({
-  photosets,
-}: {
-  photosets: FlickrPhotoset[];
-}) => {
-  if (photosets.length === 0) {
+export const TileGrid = ({ tiles }: { tiles: TileData[] }) => {
+  if (tiles.length === 0) {
     return <p className="text-center text-gray-500">No albums here yet.</p>;
   }
 
-  // Count only albums that actually render a cover image.
-  const eagerIds = new Set(
-    photosets
-      .filter((set) => set.primary_photo_extras?.url_m)
+  // Count only tiles that actually render a cover image.
+  const eagerKeys = new Set(
+    tiles
+      .filter((tile) => tile.cover?.url_m)
       .slice(0, EAGER_COUNT)
-      .map((set) => set.id),
+      .map((tile) => tile.key),
   );
 
   return (
     <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4">
-      {photosets.map((set) => (
-        <PhotoSet key={set.id} set={set} eager={eagerIds.has(set.id)} />
+      {tiles.map((tile) => (
+        <Tile key={tile.key} tile={tile} eager={eagerKeys.has(tile.key)} />
       ))}
     </div>
   );
 };
+
+export const PhotoSetGrid = ({
+  photosets,
+}: {
+  photosets: FlickrPhotoset[];
+}) => <TileGrid tiles={photosets.map(photosetTile)} />;
