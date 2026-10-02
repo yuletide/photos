@@ -37,20 +37,28 @@ ways, and can use both:
   photosetIds: ['72157673637437610'], // from flickr.com/photos/<you>/albums/<id>
 },
 {
-  name: 'Flowers',
-  slug: 'flowers',
+  name: 'Botanical',
+  slug: 'botanical',
   photosetIds: [],
-  tags: ['flowers', 'gallery'], // photos need both tags
+  tags: ['botanical', 'gallery'], // photos need both tags
 },
 ```
 
 The `gallery` tag is a curation flag: pairing it with a subject tag means
 only photos you've picked show up, not everything you've ever tagged
-`flowers`.
+`botanical`.
+
+Broad categories work well with a Lightroom keyword hierarchy: put
+`Flowers` and `Dead plants` under a `Botanical` parent. In Keyword List →
+right-click → Edit Keyword Tag, turn on **Export Containing Keywords** for
+each child (`Flowers`, `Dead plants`) and keep **Include on Export** on for
+`Botanical` (both are on by default for new keywords). A photo keyworded
+`Dead plants` then reaches Flickr tagged both `deadplants` and `botanical`;
+the Keywording panel's **Will Export** view shows what will be sent.
 
 ### Adding photos from Lightroom Classic
 
-- **Tag-based categories:** add the keywords (e.g. `flowers` and `gallery`)
+- **Tag-based categories:** add the keywords (e.g. `botanical` and `gallery`)
   and publish or re-publish to Flickr through the Flickr publish service.
   Lightroom keywords become Flickr tags. After the one-hour cache expires, a
   request starts a background refresh; requests after it completes see the photo.
