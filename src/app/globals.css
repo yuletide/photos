@@ -18,27 +18,27 @@ body {
 }
 
 /* Lightbox info panel: make room for it instead of covering the photo.
-   Phones get a bottom sheet (35dvh tall), wider screens a right column. */
+   Phones get a bottom sheet (45dvh tall), wider screens a right column. */
 .photo-info-open .yarl__toolbar {
   z-index: 1; /* keep (i) and close above the panel */
 }
 .photo-info-open .yarl__slide {
-  padding-bottom: calc(35dvh + 16px);
+  padding-bottom: calc(45dvh + 16px);
 }
 .photo-info-open .yarl__navigation_prev,
 .photo-info-open .yarl__navigation_next {
-  top: 32.5dvh; /* centered on the photo above the sheet */
+  top: 27.5dvh; /* centered on the photo above the sheet */
 }
 @media (min-width: 48rem) {
   .photo-info-open .yarl__slide {
     padding-bottom: 16px;
-    padding-right: calc(16rem + 16px);
+    padding-right: calc(18rem + 16px);
   }
   .photo-info-open .yarl__navigation_prev,
   .photo-info-open .yarl__navigation_next {
     top: 50%;
   }
   .photo-info-open .yarl__navigation_next {
-    right: 16rem;
+    right: 18rem;
   }
 }

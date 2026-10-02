@@ -10,7 +10,10 @@ import {
 describe('PhotoInfo', () => {
   it('hides file-name titles', () => {
     expect(displayTitle('20250103-P1030363.jpg')).toBe('');
+    expect(displayTitle('20230821-P8210388')).toBe('');
+    expect(displayTitle('20260419-_4192597')).toBe('');
     expect(displayTitle('Crowdsurf at DNA')).toBe('Crowdsurf at DNA');
+    expect(displayTitle('Cuba 2017')).toBe('Cuba 2017');
   });
 
   it('hides curation and machine tags', () => {
@@ -47,10 +50,12 @@ describe('PhotoInfo', () => {
     expect(screen.getByText('Crowdsurf')).toBeTruthy();
     expect(screen.getByText('January 3, 2025')).toBeTruthy();
     expect(screen.getByText('Lake Hövsgöl, Mongolia & Siberia')).toBeTruthy();
-    expect(screen.getByText('1/250 s').closest('p')?.textContent).toBe(
-      '1/250 s · f/1.7 · ISO 3200',
-    );
-    expect(screen.getByText('GX85 · 25mm F1.7')).toBeTruthy();
+    expect(screen.getByText('1/250 s')).toBeTruthy();
+    expect(screen.getByText('f/1.7')).toBeTruthy();
+    expect(screen.getByText('3200')).toBeTruthy();
+    expect(screen.getByText('GX85')).toBeTruthy();
+    expect(screen.getByText('25mm F1.7')).toBeTruthy();
+    expect(screen.queryByText('Focal length')).toBeNull();
     expect(screen.getAllByRole('listitem').map((li) => li.textContent)).toEqual(
       ['metal', 'sf'],
     );
@@ -67,7 +72,6 @@ describe('PhotoInfo', () => {
     );
     expect(screen.queryByRole('list')).toBeNull();
   });
-
   it('turns Flickr description HTML into plain text', () => {
     expect(
       plainCaption(
