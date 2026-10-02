@@ -1,3 +1,4 @@
+import { decodeHTML } from 'entities';
 import { FlickrPhoto, PhotoExif } from '@/types/flickr';
 
 // Curation tags (e.g. the "gallery" tag that puts photos on the site) and
@@ -28,28 +29,10 @@ const formatDate = (photo: FlickrPhoto) => {
 };
 
 // Flickr descriptions are HTML (links, <br>, entities); show them as plain
-// text with line breaks kept, never as markup.
-const ENTITIES: Record<string, string> = {
-  amp: '&',
-  lt: '<',
-  gt: '>',
-  quot: '"',
-  apos: "'",
-  nbsp: ' ',
-};
-
+// text with line breaks kept, never as markup. Tags are stripped before
+// decoding, so an encoded "&lt;b&gt;" stays visible text rather than a tag.
 export const plainCaption = (html = '') =>
-  html
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<[^>]*>/g, '')
-    .replace(/&(#x?[0-9a-f]+|\w+);/gi, (entity, code: string) => {
-      if (code[0] !== '#') return ENTITIES[code.toLowerCase()] ?? entity;
-      const n = parseInt(
-        code.slice(code[1] === 'x' ? 2 : 1),
-        code[1] === 'x' ? 16 : 10,
-      );
-      return Number.isFinite(n) ? String.fromCodePoint(n) : entity;
-    })
+  decodeHTML(html.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]*>/g, ''))
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 
@@ -83,14 +66,14 @@ export const PhotoInfo = ({
   const gear = exif ? gearLine(exif) : '';
 
   return (
-    <div className="space-y-5 text-xs leading-relaxed text-gray-500">
+    <div className="space-y-5 text-xs leading-relaxed text-gray-400">
       {(title || caption) && (
         <div className="space-y-2">
           {title && (
-            <h2 className="text-sm font-medium text-gray-200">{title}</h2>
+            <h2 className="text-sm font-medium text-gray-100">{title}</h2>
           )}
           {caption && (
-            <p className="whitespace-pre-line text-[13px] text-gray-400">
+            <p className="whitespace-pre-line text-[13px] text-gray-300">
               {caption}
             </p>
           )}
@@ -104,7 +87,7 @@ export const PhotoInfo = ({
             </p>
           )}
           {settings.length > 0 && (
-            <p className="text-gray-400">
+            <p className="text-gray-300">
               {settings.map((value, i) => (
                 // Wrap between values, never inside one ("-1 EV").
                 <span key={value} className="whitespace-nowrap">
@@ -128,7 +111,7 @@ export const PhotoInfo = ({
         href={`https://www.flickr.com/photo.gne?id=${photo.id}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-block text-gray-600 transition-colors hover:text-gray-300"
+        className="inline-block text-gray-400 underline-offset-2 transition-colors hover:text-gray-100 hover:underline"
       >
         View on Flickr ↗
       </a>
