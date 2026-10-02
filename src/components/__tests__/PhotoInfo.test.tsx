@@ -96,4 +96,10 @@ describe('PhotoInfo', () => {
   it('keeps encoded markup as visible text', () => {
     expect(plainCaption('&lt;b&gt;not bold&lt;/b&gt;')).toBe('<b>not bold</b>');
   });
+
+  it('ignores placeholder descriptions written by cameras', () => {
+    expect(plainCaption('OLYMPUS DIGITAL CAMERA')).toBe('');
+    expect(plainCaption('SONY DSC')).toBe('');
+    expect(plainCaption('Olympus at the lake')).toBe('Olympus at the lake');
+  });
 });
