@@ -308,6 +308,23 @@ const writeInfoPref = (show: boolean) => {
   }
 };
 
+// When the lightbox closes it returns focus to the photo that opened it (so
+// Tab continues from there), and Chrome then draws its focus ring around that
+// photo. Hide the ring until the viewer actually navigates by keyboard again.
+const hideRestoredFocusRing = () => {
+  const el = document.activeElement;
+  if (!(el instanceof HTMLElement) || !el.closest('[data-photo-grid]')) return;
+  el.dataset.focusRestored = '';
+  const reveal = (e: Event) => {
+    if (e instanceof KeyboardEvent && e.key !== 'Tab') return;
+    delete el.dataset.focusRestored;
+    document.removeEventListener('keydown', reveal, true);
+    el.removeEventListener('blur', reveal);
+  };
+  document.addEventListener('keydown', reveal, true);
+  el.addEventListener('blur', reveal);
+};
+
 // Let cmd/ctrl/shift-click and middle-click open the image in a new tab.
 const isPlainClick = (e: MouseEvent) =>
   e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
@@ -340,7 +357,10 @@ export const PhotoGrid = ({ photos }: { photos: FlickrPhoto[] }) => {
 
   return (
     <>
-      <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4">
+      <div
+        data-photo-grid
+        className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4"
+      >
         {shown.map((photo, i) => (
           <a
             key={photo.id}
@@ -369,6 +389,7 @@ export const PhotoGrid = ({ photos }: { photos: FlickrPhoto[] }) => {
         open={open}
         index={index}
         close={() => setIndex(-1)}
+        on={{ exited: () => requestAnimationFrame(hideRestoredFocusRing) }}
         slides={shown.map(toSlide)}
         // Load the current photo first; neighbors only once it has arrived,
         // so large images aren't all requested at once.
