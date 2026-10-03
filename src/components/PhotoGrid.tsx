@@ -1,11 +1,16 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useState, type MouseEvent } from 'react';
+import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import Lightbox, {
+  ErrorIcon,
   IconButton,
+  ImageSlide,
+  LoadingIcon,
   createIcon,
+  useLightboxProps,
   useLightboxState,
+  type RenderSlideProps,
   type SlideImage,
 } from 'yet-another-react-lightbox';
 import 'yet-another-react-lightbox/styles.css';
@@ -91,6 +96,186 @@ const InfoPanelContent = ({ photo }: { photo: FlickrPhoto }) => (
   <PhotoInfo photo={photo} exif={useExif(photo.id)} />
 );
 
+// Flickr's CDN can refuse large images (429 when requests come in bursts,
+// and on some iOS Safari + Private Relay setups). If a slide's image fails,
+// show the 500px version right away (already cached from the grid), then
+// upgrade in the background: 1024px first, then 2048px (or 1600px), each with
+// 1s/2s/4s backoff. No broken-image icon while that happens.
+const RETRY_DELAYS = [1000, 2000, 4000];
+// 1024px first (quick, usually allowed), then the full-resolution sizes.
+const UPGRADE_SIZES = ['l', 'k', 'h'] as const;
+
+const sizedSlide = (
+  photo: FlickrPhoto,
+  size: 'm' | 'l' | 'h' | 'k',
+  alt?: string,
+): SlideImage | undefined => {
+  const src = photo[`url_${size}`];
+  return src
+    ? {
+        src,
+        width: Number(photo[`width_${size}`]),
+        height: Number(photo[`height_${size}`]),
+        alt,
+        photo,
+      }
+    : undefined;
+};
+
+// Resolves true once `src` loads, retrying with backoff; false if it never does.
+export const loadWithRetry = (
+  src: string,
+  cancelled: () => boolean,
+  onRetry: () => void = () => {},
+) =>
+  new Promise<boolean>((resolve) => {
+    let attempt = 0;
+    const tryOnce = () => {
+      if (cancelled()) return resolve(false);
+      const img = new window.Image(); // not next/image's Image
+      img.onload = () => resolve(true);
+      img.onerror = () => {
+        if (attempt >= RETRY_DELAYS.length) return resolve(false);
+        onRetry();
+        setTimeout(tryOnce, RETRY_DELAYS[attempt++]);
+      };
+      img.src = src;
+    };
+    tryOnce();
+  });
+
+const RetryingSlide = ({
+  slide,
+  offset,
+  rect,
+  onCurrentLoad,
+}: RenderSlideProps & { onCurrentLoad: () => void }) => {
+  const { carousel } = useLightboxProps();
+  const photo = 'photo' in slide ? slide.photo : undefined;
+  const [failed, setFailed] = useState(false);
+  const [terminalFailure, setTerminalFailure] = useState(false);
+  const [upgraded, setUpgraded] = useState<SlideImage>();
+  // For the ?debug badge: what's on screen and how the upgrade is going.
+  const [loadedSrc, setLoadedSrc] = useState('');
+  const [retries, setRetries] = useState(0);
+  const [upgrading, setUpgrading] = useState(false);
+
+  useEffect(() => {
+    if (!failed || !photo) return;
+    let cancelled = false;
+    (async () => {
+      setUpgrading(true);
+      let upgradedAny = false;
+      for (const size of UPGRADE_SIZES) {
+        const candidate = sizedSlide(photo, size, slide.alt);
+        if (
+          candidate &&
+          (await loadWithRetry(
+            candidate.src,
+            () => cancelled,
+            () => setRetries((n) => n + 1),
+          ))
+        ) {
+          if (cancelled) return;
+          upgradedAny = true;
+          setUpgraded(candidate);
+          if (size !== 'l') break; // Full resolution: done.
+        }
+      }
+      if (!cancelled) {
+        setTerminalFailure(!upgradedAny);
+        setUpgrading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [failed, photo, slide.alt]);
+
+  if (!photo) return undefined;
+  const shown =
+    upgraded ?? (failed ? (sizedSlide(photo, 'm', slide.alt) ?? slide) : slide);
+
+  return (
+    <>
+      <ImageSlide
+        key={shown.src}
+        slide={shown}
+        offset={offset}
+        rect={rect}
+        imageFit={carousel.imageFit}
+        imageProps={carousel.imageProps}
+        render={{
+          iconError: () =>
+            terminalFailure ? (
+              <ErrorIcon className="yarl__icon yarl__slide_error" />
+            ) : (
+              <LoadingIcon className="yarl__icon yarl__slide_loading" />
+            ),
+        }}
+        onLoad={(img) => {
+          setLoadedSrc(img.currentSrc || img.src);
+          if (offset === 0) onCurrentLoad();
+        }}
+        onError={() => setFailed(true)}
+      />
+      {offset === 0 && showDebug() && (
+        <DebugBadge
+          src={loadedSrc}
+          failed={failed}
+          upgrading={upgrading}
+          retries={retries}
+        />
+      )}
+    </>
+  );
+};
+
+// Add ?debug to the URL to see which Flickr size the lightbox is showing and
+// whether it had to fall back or retry. Handy for checking on a phone.
+const showDebug = () => {
+  try {
+    return new URLSearchParams(window.location.search).has('debug');
+  } catch {
+    return false;
+  }
+};
+
+const SIZE_LABELS: Record<string, string> = {
+  k: '2048px',
+  h: '1600px',
+  b: '1024px',
+};
+
+export const sizeLabel = (src: string) => {
+  const suffix = src.match(/_([a-z])\.jpg$/)?.[1];
+  if (!src) return 'loading';
+  return (suffix && SIZE_LABELS[suffix]) ?? '500px';
+};
+
+const DebugBadge = ({
+  src,
+  failed,
+  upgrading,
+  retries,
+}: {
+  src: string;
+  failed: boolean;
+  upgrading: boolean;
+  retries: number;
+}) => (
+  <div className="pointer-events-none absolute left-3 top-3 z-10 rounded bg-black/70 px-2 py-1 font-mono text-[11px] text-white">
+    {[
+      sizeLabel(src),
+      failed && 'fallback',
+      upgrading && 'upgrading…',
+      retries > 0 && `${retries} retr${retries === 1 ? 'y' : 'ies'}`,
+    ]
+      .filter(Boolean)
+      .join(' · ')}
+  </div>
+);
+
 // Info for the current slide: a right-hand column on wide screens (the photo
 // shrinks to make room, see globals.css) and a bottom sheet on phones.
 const InfoPanel = () => {
@@ -130,6 +315,8 @@ const isPlainClick = (e: MouseEvent) =>
 export const PhotoGrid = ({ photos }: { photos: FlickrPhoto[] }) => {
   const [index, setIndex] = useState(-1);
   const [showInfo, setShowInfo] = useState(false);
+  // Whether the photo on screen has loaded; neighbors preload only after.
+  const [currentLoaded, setCurrentLoaded] = useState(false);
   const shown = photos.filter((photo) => photo.url_m);
   const open = index >= 0;
 
@@ -162,6 +349,7 @@ export const PhotoGrid = ({ photos }: { photos: FlickrPhoto[] }) => {
               if (!isPlainClick(e)) return;
               e.preventDefault();
               setShowInfo(readInfoPref());
+              setCurrentLoaded(false);
               setIndex(i);
             }}
             className="block break-inside-avoid hover:opacity-80 transition-opacity"
@@ -182,6 +370,9 @@ export const PhotoGrid = ({ photos }: { photos: FlickrPhoto[] }) => {
         index={index}
         close={() => setIndex(-1)}
         slides={shown.map(toSlide)}
+        // Load the current photo first; neighbors only once it has arrived,
+        // so large images aren't all requested at once.
+        carousel={{ preload: currentLoaded ? 2 : 0 }}
         toolbar={{
           buttons: [
             <IconButton
@@ -195,7 +386,16 @@ export const PhotoGrid = ({ photos }: { photos: FlickrPhoto[] }) => {
           ],
         }}
         className={showInfo ? 'photo-info-open' : undefined}
-        render={{ controls: () => (showInfo ? <InfoPanel /> : null) }}
+        render={{
+          controls: () => (showInfo ? <InfoPanel /> : null),
+          slide: (props) => (
+            <RetryingSlide
+              key={props.slide.src}
+              {...props}
+              onCurrentLoad={() => setCurrentLoaded(true)}
+            />
+          ),
+        }}
       />
     </>
   );
