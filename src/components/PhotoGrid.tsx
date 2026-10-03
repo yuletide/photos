@@ -3,8 +3,10 @@
 import Image from 'next/image';
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import Lightbox, {
+  ErrorIcon,
   IconButton,
   ImageSlide,
+  LoadingIcon,
   createIcon,
   useLightboxProps,
   useLightboxState,
@@ -151,6 +153,7 @@ const RetryingSlide = ({
   const { carousel } = useLightboxProps();
   const photo = 'photo' in slide ? slide.photo : undefined;
   const [failed, setFailed] = useState(false);
+  const [terminalFailure, setTerminalFailure] = useState(false);
   const [upgraded, setUpgraded] = useState<SlideImage>();
   // For the ?debug badge: what's on screen and how the upgrade is going.
   const [loadedSrc, setLoadedSrc] = useState('');
@@ -162,6 +165,7 @@ const RetryingSlide = ({
     let cancelled = false;
     (async () => {
       setUpgrading(true);
+      let upgradedAny = false;
       for (const size of UPGRADE_SIZES) {
         const candidate = sizedSlide(photo, size, slide.alt);
         if (
@@ -173,11 +177,15 @@ const RetryingSlide = ({
           ))
         ) {
           if (cancelled) return;
+          upgradedAny = true;
           setUpgraded(candidate);
           if (size !== 'l') break; // Full resolution: done.
         }
       }
-      if (!cancelled) setUpgrading(false);
+      if (!cancelled) {
+        setTerminalFailure(!upgradedAny);
+        setUpgrading(false);
+      }
     })();
     return () => {
       cancelled = true;
@@ -197,6 +205,14 @@ const RetryingSlide = ({
         rect={rect}
         imageFit={carousel.imageFit}
         imageProps={carousel.imageProps}
+        render={{
+          iconError: () =>
+            terminalFailure ? (
+              <ErrorIcon className="yarl__icon yarl__slide_error" />
+            ) : (
+              <LoadingIcon className="yarl__icon yarl__slide_loading" />
+            ),
+        }}
         onLoad={(img) => {
           setLoadedSrc(img.currentSrc || img.src);
           if (offset === 0) onCurrentLoad();
