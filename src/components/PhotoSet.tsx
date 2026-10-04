@@ -21,6 +21,8 @@ export const PhotoSet = ({
             width={cover.width_m}
             height={cover.height_m}
             loading={eager ? 'eager' : 'lazy'}
+            // Two columns on phones, three from lg (see PhotoSetGrid).
+            sizes="(min-width: 1024px) 33vw, 50vw"
             className="w-full h-auto group-hover:opacity-80 transition-opacity"
           />
         )}

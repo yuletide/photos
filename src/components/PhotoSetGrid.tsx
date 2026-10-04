@@ -22,7 +22,7 @@ export const PhotoSetGrid = ({
   );
 
   return (
-    <div className="columns-2 lg:columns-3 gap-3 space-y-5 md:gap-4 md:space-y-4">
+    <div className="columns-2 lg:columns-3 gap-3 space-y-3 md:gap-4 md:space-y-4">
       {photosets.map((set) => (
         <PhotoSet key={set.id} set={set} eager={eagerIds.has(set.id)} />
       ))}
