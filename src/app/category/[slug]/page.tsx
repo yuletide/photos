@@ -24,11 +24,16 @@ export const generateMetadata = async ({
   const { slug } = await params;
   const category = getCategory(slug);
   if (!category) return {};
-  // Preview with the first photo on the page: a tagged photo, else an album cover.
-  const image = category.tags?.length
-    ? (await getPhotosByTags(category.tags)).find((photo) => photo.url_m)
-    : filterPhotosetsByConfig(await getPhotosets(), slug)[0]
-        ?.primary_photo_extras;
+  // Preview with the first photo on the page: album covers come first, then
+  // tagged photos.
+  const cover = filterPhotosetsByConfig(await getPhotosets(), slug).find(
+    (set) => set.primary_photo_extras?.url_m,
+  )?.primary_photo_extras;
+  const image =
+    cover ??
+    (category.tags?.length
+      ? (await getPhotosByTags(category.tags)).find((photo) => photo.url_m)
+      : undefined);
   return {
     title: category.name,
     ...shareMetadata({

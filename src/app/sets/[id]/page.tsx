@@ -22,7 +22,7 @@ export const generateMetadata = async ({
     title,
     ...shareMetadata({
       title,
-      description: `${photos.length} photographs by Alex Yule.`,
+      description: `${photos.length} ${photos.length === 1 ? 'photograph' : 'photographs'} by Alex Yule.`,
       path: `/sets/${id}`,
       image: photos.find((photo) => photo.url_m),
     }),
