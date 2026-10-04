@@ -10,6 +10,12 @@ export interface TileData {
   cover?: { url_m?: string; width_m?: number; height_m?: number };
 }
 
+// Whether a tile has enough to render its cover image.
+export const hasCover = (
+  tile: TileData,
+): tile is TileData & { cover: Required<NonNullable<TileData['cover']>> } =>
+  Boolean(tile.cover?.url_m && tile.cover.width_m && tile.cover.height_m);
+
 export const Tile = ({
   tile,
   eager = false,
@@ -19,7 +25,7 @@ export const Tile = ({
 }) => (
   <div className="break-inside-avoid">
     <Link href={tile.href} className="block group">
-      {tile.cover?.url_m && tile.cover.width_m && tile.cover.height_m && (
+      {hasCover(tile) && (
         <Image
           src={tile.cover.url_m}
           alt={tile.title}

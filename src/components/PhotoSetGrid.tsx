@@ -1,5 +1,5 @@
 import { photosetTile } from '@/components/PhotoSet';
-import { Tile, TileData } from '@/components/Tile';
+import { Tile, TileData, hasCover } from '@/components/Tile';
 import { FlickrPhotoset } from '@/types/flickr';
 
 // Images above the fold load eagerly to keep LCP fast.
@@ -13,7 +13,7 @@ export const TileGrid = ({ tiles }: { tiles: TileData[] }) => {
   // Count only tiles that actually render a cover image.
   const eagerKeys = new Set(
     tiles
-      .filter((tile) => tile.cover?.url_m)
+      .filter(hasCover)
       .slice(0, EAGER_COUNT)
       .map((tile) => tile.key),
   );
