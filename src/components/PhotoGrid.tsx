@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useState, type MouseEvent } from 'react';
+import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import Lightbox, {
   IconButton,
   createIcon,
@@ -125,7 +125,8 @@ const writeInfoPref = (show: boolean) => {
 
 // When the lightbox closes it returns focus to the photo that opened it (so
 // Tab continues from there), and Chrome then draws its focus ring around that
-// photo. Hide the ring until the viewer actually navigates by keyboard again.
+// photo. If it was closed with the mouse or a tap, hide the ring until the
+// viewer navigates by keyboard again; keyboard closes keep it.
 const hideRestoredFocusRing = () => {
   const el = document.activeElement;
   if (!(el instanceof HTMLElement) || !el.closest('[data-photo-grid]')) return;
@@ -149,6 +150,20 @@ export const PhotoGrid = ({ photos }: { photos: FlickrPhoto[] }) => {
   const [showInfo, setShowInfo] = useState(false);
   const shown = photos.filter((photo) => photo.url_m);
   const open = index >= 0;
+  // How the viewer last interacted, to decide whether to hide the focus ring.
+  const lastInput = useRef<'pointer' | 'keyboard'>('pointer');
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointer = () => (lastInput.current = 'pointer');
+    const onKey = () => (lastInput.current = 'keyboard');
+    document.addEventListener('pointerdown', onPointer, true);
+    document.addEventListener('keydown', onKey, true);
+    return () => {
+      document.removeEventListener('pointerdown', onPointer, true);
+      document.removeEventListener('keydown', onKey, true);
+    };
+  }, [open]);
 
   const toggleInfo = () =>
     setShowInfo((show) => {
@@ -201,7 +216,12 @@ export const PhotoGrid = ({ photos }: { photos: FlickrPhoto[] }) => {
         open={open}
         index={index}
         close={() => setIndex(-1)}
-        on={{ exited: () => requestAnimationFrame(hideRestoredFocusRing) }}
+        on={{
+          exited: () => {
+            if (lastInput.current === 'pointer')
+              requestAnimationFrame(hideRestoredFocusRing);
+          },
+        }}
         slides={shown.map(toSlide)}
         toolbar={{
           buttons: [

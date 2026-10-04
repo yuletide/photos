@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { PhotoGrid } from '../PhotoGrid';
 
@@ -75,6 +75,31 @@ describe('PhotoGrid', () => {
     expect(fireEvent.click(link)).toBe(false); // default prevented
     expect(screen.getByRole('dialog')).toBeTruthy();
   });
+
+  it.each([
+    ['mouse', true],
+    ['keyboard', false],
+  ] as const)(
+    'after closing with the %s, hides the restored focus ring: %s',
+    async (input, hidden) => {
+      render(<PhotoGrid photos={photos} />);
+      const link = screen.getAllByRole('link')[1];
+      link.focus();
+      fireEvent.click(link);
+      const close = screen.getByRole('button', { name: 'Close' });
+      if (input === 'mouse') {
+        fireEvent.pointerDown(close);
+        fireEvent.click(close);
+      } else {
+        fireEvent.keyDown(close, { key: 'Escape' });
+      }
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+      link.focus();
+      // The ring is hidden on the frame after the lightbox exits.
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      expect(link.hasAttribute('data-focus-restored')).toBe(hidden);
+    },
+  );
 
   it('leaves modified clicks to the browser', () => {
     render(<PhotoGrid photos={photos} />);
