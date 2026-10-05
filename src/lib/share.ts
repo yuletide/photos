@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { displayTitle, plainCaption } from '@/components/PhotoInfo';
 import { FlickrPhoto } from '@/types/flickr';
 
 export const SITE_NAME = 'Alex Yule Photos';
@@ -65,3 +66,32 @@ export const shareMetadata = ({
     },
   };
 };
+
+// The photo a ?photo=<id> link points at, if it's on the page.
+export const sharedPhoto = (
+  photos: FlickrPhoto[],
+  photoId?: string | string[],
+) =>
+  typeof photoId === 'string'
+    ? photos.find((photo) => photo.id === photoId && photo.url_m)
+    : undefined;
+
+// Preview for a link to one photo: that photo, with its own title and the
+// first line of its caption, falling back to the page it's on.
+export const photoShareMetadata = ({
+  photo,
+  pageTitle,
+  path,
+}: {
+  photo: FlickrPhoto;
+  pageTitle: string;
+  path: string;
+}): Metadata =>
+  shareMetadata({
+    title: displayTitle(photo.title) || pageTitle,
+    description:
+      plainCaption(photo.description?._content).split('\n')[0] ||
+      `From ${pageTitle}, by Alex Yule.`,
+    path: `${path}?photo=${photo.id}`,
+    image: photo,
+  });
