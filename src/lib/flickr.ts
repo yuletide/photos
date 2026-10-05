@@ -10,6 +10,15 @@ import {
 
 const API_URL = 'https://api.flickr.com/services/rest/';
 
+// Flickr's image CDN. Its URLs in API responses are rewritten to this site's
+// /flickr/ proxy (see app/flickr/[...path]/route.ts), which Private Relay
+// users can load.
+export const FLICKR_IMAGES = 'https://live.staticflickr.com/';
+export const proxiedImage = (url: string) =>
+  url.startsWith(FLICKR_IMAGES)
+    ? `/flickr/${url.slice(FLICKR_IMAGES.length)}`
+    : url;
+
 // How often (seconds) cached Flickr responses are refreshed. Pages built from
 // this data are regenerated in the background via ISR - no redeploy needed.
 export const REVALIDATE_SECONDS = 3600;
@@ -47,7 +56,9 @@ const callFlickr = async <T>(
   }
 
   // Flickr returns HTTP 200 with stat "fail" for API-level errors.
-  const body = await res.json();
+  const body = JSON.parse(await res.text(), (_key, value) =>
+    typeof value === 'string' ? proxiedImage(value) : value,
+  );
   if (body.stat !== 'ok') {
     throw new Error(`Flickr ${method} failed: ${body.message ?? 'unknown'}`);
   }

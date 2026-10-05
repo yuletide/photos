@@ -25,6 +25,28 @@ describe('flickr client', () => {
     mockFetch.mockReset();
   });
 
+  it("serves Flickr images through the site's /flickr/ proxy", async () => {
+    mockFetch.mockResolvedValue(
+      jsonResponse({
+        stat: 'ok',
+        photosets: {
+          photoset: [
+            {
+              id: '1',
+              primary_photo_extras: {
+                url_m: 'https://live.staticflickr.com/65535/9_abc.jpg',
+              },
+              description: { _content: 'see https://example.com' },
+            },
+          ],
+        },
+      }),
+    );
+    const [set] = await getPhotosets();
+    expect(set.primary_photo_extras?.url_m).toBe('/flickr/65535/9_abc.jpg');
+    expect(set.description._content).toBe('see https://example.com');
+  });
+
   it('fetches photosets with credentials and ISR caching', async () => {
     const photoset = [{ id: '1', title: { _content: 'Test Set' } }];
     mockFetch.mockResolvedValue(
