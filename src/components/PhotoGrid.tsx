@@ -316,8 +316,8 @@ const writeInfoPref = (show: boolean) => {
 
 // When the lightbox closes it returns focus to the photo that opened it (so
 // Tab continues from there), and Chrome then draws its focus ring around that
-// photo. If it was closed with the mouse or a tap, hide the ring until the
-// viewer navigates by keyboard again; keyboard closes keep it.
+// photo. Hide the ring however it was closed (Escape included) until the
+// viewer presses Tab, which shows it again where they left off.
 const hideRestoredFocusRing = () => {
   const el = document.activeElement;
   if (!(el instanceof HTMLElement) || !el.closest('[data-photo-grid]')) return;
@@ -376,20 +376,6 @@ export const PhotoGrid = ({ photos }: { photos: FlickrPhoto[] }) => {
   );
   const index = photoId ? shown.findIndex((p) => p.id === photoId) : -1;
   const open = index >= 0;
-  // How the viewer last interacted, to decide whether to hide the focus ring.
-  const lastInput = useRef<'pointer' | 'keyboard'>('pointer');
-
-  useEffect(() => {
-    if (!open) return;
-    const onPointer = () => (lastInput.current = 'pointer');
-    const onKey = () => (lastInput.current = 'keyboard');
-    document.addEventListener('pointerdown', onPointer, true);
-    document.addEventListener('keydown', onKey, true);
-    return () => {
-      document.removeEventListener('pointerdown', onPointer, true);
-      document.removeEventListener('keydown', onKey, true);
-    };
-  }, [open]);
 
   // Whether we added the history entry for the open photo; if so, closing
   // goes back to it rather than piling up entries.
@@ -469,10 +455,7 @@ export const PhotoGrid = ({ photos }: { photos: FlickrPhoto[] }) => {
         on={{
           view: ({ index: viewed }) =>
             shown[viewed] && writePhotoParam(shown[viewed].id, 'replace'),
-          exited: () => {
-            if (lastInput.current === 'pointer')
-              requestAnimationFrame(hideRestoredFocusRing);
-          },
+          exited: () => requestAnimationFrame(hideRestoredFocusRing),
         }}
         // Load the current photo first; neighbors only once it has arrived,
         // so large images aren't all requested at once.
