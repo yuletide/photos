@@ -6,6 +6,8 @@ import { Analytics } from '@vercel/analytics/next';
 import Navigation from '@/components/Navigation';
 import './globals.css';
 
+const SITE_NAME = 'Alex Yule Photos';
+
 const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
@@ -13,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: { default: 'Photos', template: '%s · Photos' },
-  description: 'Photos by Yuletide, from Flickr.',
+  title: { default: SITE_NAME, template: `%s · ${SITE_NAME}` },
+  description: 'Photographs by Alex Yule.',
 };
 
 const Layout = ({ children }: { children: ReactNode }) => (
@@ -23,7 +25,7 @@ const Layout = ({ children }: { children: ReactNode }) => (
       <header className="sticky top-0 z-50 p-4 bg-gradient-to-b from-black/80 to-transparent">
         <div className="text-center">
           <h1 className="text-2xl font-light tracking-widest text-white uppercase">
-            <Link href="/">Photos</Link>
+            <Link href="/">{SITE_NAME}</Link>
           </h1>
           <Navigation />
         </div>
@@ -33,7 +35,7 @@ const Layout = ({ children }: { children: ReactNode }) => (
 
       <footer className="w-full p-8 mt-16 text-center">
         <p className="text-xs text-gray-600">
-          © {new Date().getFullYear()} Yuletide. Powered by Flickr.
+          © {new Date().getFullYear()} Alex Yule. Powered by Flickr.
         </p>
       </footer>
       <Analytics />

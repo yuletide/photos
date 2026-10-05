@@ -1,11 +1,22 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useState, type MouseEvent } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type MouseEvent,
+} from 'react';
 import Lightbox, {
+  ErrorIcon,
   IconButton,
+  ImageSlide,
+  LoadingIcon,
   createIcon,
+  useLightboxProps,
   useLightboxState,
+  type RenderSlideProps,
   type SlideImage,
 } from 'yet-another-react-lightbox';
 import 'yet-another-react-lightbox/styles.css';
@@ -91,6 +102,225 @@ const InfoPanelContent = ({ photo }: { photo: FlickrPhoto }) => (
   <PhotoInfo photo={photo} exif={useExif(photo.id)} />
 );
 
+// Flickr's CDN can refuse large images (429 when requests come in bursts,
+// and on some iOS Safari + Private Relay setups). If a slide's image fails,
+// show the 500px version right away (already cached from the grid), then,
+// once it's the photo on screen, upgrade in the background: 1024px first,
+// then the size the screen needs, each with ~1s/2s/4s backoff. No
+// broken-image icon while that happens.
+const RETRY_DELAYS = [1000, 2000, 4000];
+const UPGRADE_SIZES = ['l', 'h', 'k'] as const;
+
+// Spread retries out (±25%) so slides that failed together don't retry in
+// the same burst.
+const jitter = (delay: number) => delay * (0.75 + Math.random() * 0.5);
+
+// The smallest size at least as wide as the photo is drawn on this screen
+// (what the browser picks from srcSet), else the largest there is.
+const neededSize = (photo: FlickrPhoto, rect: RenderSlideProps['rect']) => {
+  const width = Number(photo.width_m);
+  const height = Number(photo.height_m);
+  const drawn = Math.min(rect.width, (rect.height / height) * width);
+  const needed = drawn * (window.devicePixelRatio || 1);
+  const available = UPGRADE_SIZES.filter((size) => photo[`url_${size}`]);
+  return (
+    available.find((size) => Number(photo[`width_${size}`]) >= needed) ??
+    available[available.length - 1]
+  );
+};
+
+// 1024px first (quick, usually allowed), then the needed size if bigger.
+export const upgradeSizes = (
+  photo: FlickrPhoto,
+  rect: RenderSlideProps['rect'],
+) => {
+  const target = neededSize(photo, rect);
+  return target && target !== 'l' ? (['l', target] as const) : (['l'] as const);
+};
+
+const sizedSlide = (
+  photo: FlickrPhoto,
+  size: 'm' | 'l' | 'h' | 'k',
+  alt?: string,
+): SlideImage | undefined => {
+  const src = photo[`url_${size}`];
+  return src
+    ? {
+        src,
+        width: Number(photo[`width_${size}`]),
+        height: Number(photo[`height_${size}`]),
+        alt,
+        photo,
+      }
+    : undefined;
+};
+
+// Resolves true once `src` loads, retrying with backoff; false if it never does.
+export const loadWithRetry = (
+  src: string,
+  cancelled: () => boolean,
+  onRetry: () => void = () => {},
+) =>
+  new Promise<boolean>((resolve) => {
+    let attempt = 0;
+    const tryOnce = () => {
+      if (cancelled()) return resolve(false);
+      const img = new window.Image(); // not next/image's Image
+      img.onload = () => resolve(true);
+      img.onerror = () => {
+        if (attempt >= RETRY_DELAYS.length) return resolve(false);
+        onRetry();
+        setTimeout(tryOnce, jitter(RETRY_DELAYS[attempt++]));
+      };
+      img.src = src;
+    };
+    tryOnce();
+  });
+
+const RetryingSlide = ({
+  slide,
+  offset,
+  rect,
+  onCurrentLoad,
+}: RenderSlideProps & { onCurrentLoad: () => void }) => {
+  const { carousel } = useLightboxProps();
+  const photo = 'photo' in slide ? slide.photo : undefined;
+  const [failed, setFailed] = useState(false);
+  const [terminalFailure, setTerminalFailure] = useState(false);
+  const [upgraded, setUpgraded] = useState<SlideImage>();
+  // For the ?debug badge: what's on screen and how the upgrade is going.
+  const [loadedSrc, setLoadedSrc] = useState('');
+  const [retries, setRetries] = useState(0);
+  const [upgrading, setUpgrading] = useState(false);
+
+  // Only the photo on screen upgrades; neighbors keep the 500px version until
+  // they're shown, so they don't compete with it for Flickr's rate limit.
+  const isCurrent = offset === 0;
+  // Width of the best version loaded so far, so coming back to a slide picks
+  // up where its upgrade left off instead of stepping back down.
+  const upgradedWidth = useRef(0);
+  // Rotating or toggling the info panel resizes the slide; re-pick the size.
+  const { width: rectWidth, height: rectHeight } = rect;
+
+  useEffect(() => {
+    if (!failed || !photo || !isCurrent) return;
+    let cancelled = false;
+    (async () => {
+      setUpgrading(true);
+      for (const size of upgradeSizes(photo, {
+        width: rectWidth,
+        height: rectHeight,
+      })) {
+        const candidate = sizedSlide(photo, size, slide.alt);
+        const width = Number(photo[`width_${size}`]);
+        if (
+          candidate &&
+          width > upgradedWidth.current &&
+          (await loadWithRetry(
+            candidate.src,
+            () => cancelled,
+            () => setRetries((n) => n + 1),
+          ))
+        ) {
+          if (cancelled) return;
+          upgradedWidth.current = width;
+          setUpgraded(candidate);
+        }
+      }
+      if (!cancelled) {
+        setTerminalFailure(upgradedWidth.current === 0);
+        setUpgrading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [failed, photo, slide.alt, isCurrent, rectWidth, rectHeight]);
+
+  if (!photo) return undefined;
+  const shown =
+    upgraded ?? (failed ? (sizedSlide(photo, 'm', slide.alt) ?? slide) : slide);
+
+  return (
+    <>
+      <ImageSlide
+        key={shown.src}
+        slide={shown}
+        offset={offset}
+        rect={rect}
+        imageFit={carousel.imageFit}
+        imageProps={carousel.imageProps}
+        render={{
+          iconError: () =>
+            terminalFailure ? (
+              <ErrorIcon className="yarl__icon yarl__slide_error" />
+            ) : (
+              <LoadingIcon className="yarl__icon yarl__slide_loading" />
+            ),
+        }}
+        onLoad={(img) => {
+          setLoadedSrc(img.currentSrc || img.src);
+          if (offset === 0) onCurrentLoad();
+        }}
+        onError={() => setFailed(true)}
+      />
+      {offset === 0 && showDebug() && (
+        <DebugBadge
+          src={loadedSrc}
+          failed={failed}
+          upgrading={upgrading}
+          retries={retries}
+        />
+      )}
+    </>
+  );
+};
+
+// Add ?debug to the URL to see which Flickr size the lightbox is showing and
+// whether it had to fall back or retry. Handy for checking on a phone.
+const showDebug = () => {
+  try {
+    return new URLSearchParams(window.location.search).has('debug');
+  } catch {
+    return false;
+  }
+};
+
+const SIZE_LABELS: Record<string, string> = {
+  k: '2048px',
+  h: '1600px',
+  b: '1024px',
+};
+
+export const sizeLabel = (src: string) => {
+  const suffix = src.match(/_([a-z])\.jpg$/)?.[1];
+  if (!src) return 'loading';
+  return (suffix && SIZE_LABELS[suffix]) ?? '500px';
+};
+
+const DebugBadge = ({
+  src,
+  failed,
+  upgrading,
+  retries,
+}: {
+  src: string;
+  failed: boolean;
+  upgrading: boolean;
+  retries: number;
+}) => (
+  <div className="pointer-events-none absolute left-3 top-3 z-10 rounded bg-black/70 px-2 py-1 font-mono text-[11px] text-white">
+    {[
+      sizeLabel(src),
+      failed && 'fallback',
+      upgrading && 'upgrading…',
+      retries > 0 && `${retries} retr${retries === 1 ? 'y' : 'ies'}`,
+    ]
+      .filter(Boolean)
+      .join(' · ')}
+  </div>
+);
+
 // Info for the current slide: a right-hand column on wide screens (the photo
 // shrinks to make room, see globals.css) and a bottom sheet on phones.
 const InfoPanel = () => {
@@ -123,20 +353,78 @@ const writeInfoPref = (show: boolean) => {
   }
 };
 
+// The open photo lives in the URL (?photo=<id>), so every photo has a link
+// that can be shared or bookmarked, and the back button closes the lightbox.
+const PHOTO_PARAM = 'photo';
+const urlListeners = new Set<() => void>();
+
+const subscribeToUrl = (listener: () => void) => {
+  urlListeners.add(listener);
+  window.addEventListener('popstate', listener);
+  return () => {
+    urlListeners.delete(listener);
+    window.removeEventListener('popstate', listener);
+  };
+};
+
+const readPhotoParam = () =>
+  new URLSearchParams(window.location.search).get(PHOTO_PARAM);
+
+const writePhotoParam = (photoId: string | null, mode: 'push' | 'replace') => {
+  const url = new URL(window.location.href);
+  if (photoId) url.searchParams.set(PHOTO_PARAM, photoId);
+  else url.searchParams.delete(PHOTO_PARAM);
+  if (url.href === window.location.href) return;
+  // Next.js supports the native History API and keeps its router in sync.
+  if (mode === 'push') window.history.pushState(null, '', url);
+  else window.history.replaceState(null, '', url);
+  urlListeners.forEach((listener) => listener());
+};
+
 // Let cmd/ctrl/shift-click and middle-click open the image in a new tab.
 const isPlainClick = (e: MouseEvent) =>
   e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
 
 export const PhotoGrid = ({ photos }: { photos: FlickrPhoto[] }) => {
-  const [index, setIndex] = useState(-1);
-  const [showInfo, setShowInfo] = useState(false);
+  // Whether the photo on screen has loaded; neighbors preload only after.
+  const [currentLoaded, setCurrentLoaded] = useState(false);
   const shown = photos.filter((photo) => photo.url_m);
+  // The server (and first client render) never has a photo open.
+  const photoId = useSyncExternalStore(
+    subscribeToUrl,
+    readPhotoParam,
+    () => null,
+  );
+  const index = photoId ? shown.findIndex((p) => p.id === photoId) : -1;
   const open = index >= 0;
+  // Whether we added the history entry for the open photo; if so, closing
+  // goes back to it rather than piling up entries.
+  const pushedEntry = useRef(false);
+
+  const openPhoto = (photo: FlickrPhoto) => {
+    setCurrentLoaded(false);
+    pushedEntry.current = true;
+    writePhotoParam(photo.id, 'push');
+  };
+
+  const close = () => {
+    if (pushedEntry.current) {
+      pushedEntry.current = false;
+      window.history.back();
+    } else {
+      writePhotoParam(null, 'replace');
+    }
+  };
+
+  // null = follow the viewer's saved preference.
+  const [infoChoice, setInfoChoice] = useState<boolean | null>(null);
+  const showInfo = open && (infoChoice ?? readInfoPref());
 
   const toggleInfo = () =>
-    setShowInfo((show) => {
-      writeInfoPref(!show);
-      return !show;
+    setInfoChoice((choice) => {
+      const next = !(choice ?? readInfoPref());
+      writeInfoPref(next);
+      return next;
     });
 
   // "i" toggles the info panel while the lightbox is open.
@@ -161,8 +449,7 @@ export const PhotoGrid = ({ photos }: { photos: FlickrPhoto[] }) => {
             onClick={(e) => {
               if (!isPlainClick(e)) return;
               e.preventDefault();
-              setShowInfo(readInfoPref());
-              setIndex(i);
+              openPhoto(photo);
             }}
             className="block break-inside-avoid hover:opacity-80 transition-opacity"
           >
@@ -180,8 +467,15 @@ export const PhotoGrid = ({ photos }: { photos: FlickrPhoto[] }) => {
       <Lightbox
         open={open}
         index={index}
-        close={() => setIndex(-1)}
+        close={close}
         slides={shown.map(toSlide)}
+        on={{
+          view: ({ index: viewed }) =>
+            shown[viewed] && writePhotoParam(shown[viewed].id, 'replace'),
+        }}
+        // Load the current photo first; neighbors only once it has arrived,
+        // so large images aren't all requested at once.
+        carousel={{ preload: currentLoaded ? 2 : 0 }}
         toolbar={{
           buttons: [
             <IconButton
@@ -195,7 +489,16 @@ export const PhotoGrid = ({ photos }: { photos: FlickrPhoto[] }) => {
           ],
         }}
         className={showInfo ? 'photo-info-open' : undefined}
-        render={{ controls: () => (showInfo ? <InfoPanel /> : null) }}
+        render={{
+          controls: () => (showInfo ? <InfoPanel /> : null),
+          slide: (props) => (
+            <RetryingSlide
+              key={props.slide.src}
+              {...props}
+              onCurrentLoad={() => setCurrentLoaded(true)}
+            />
+          ),
+        }}
       />
     </>
   );

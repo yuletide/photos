@@ -1,3 +1,4 @@
+import { decodeHTML } from 'entities';
 import { FlickrPhoto, PhotoExif } from '@/types/flickr';
 
 // Curation tags (e.g. the "gallery" tag that puts photos on the site) and
@@ -9,9 +10,34 @@ export const visibleTags = (tags = '') =>
     .split(' ')
     .filter((tag) => tag && !HIDDEN_TAGS.has(tag) && !/[:=]/.test(tag));
 
-// Lightroom often publishes the file name as the title; don't show those.
+// Lightroom often publishes the file name as the title ("20230821-P8210388",
+// "20070831_MG_4415.jpg"); don't show those. A title with no spaces and a run
+// of 6+ digits is treated as a file name.
+const looksLikeFileName = (title: string) =>
+  /\.(jpe?g|png|tiff?|heic|dng)$/i.test(title) ||
+  (!/\s/.test(title) && /\d{6,}/.test(title));
+
 export const displayTitle = (title: string) =>
-  /\.(jpe?g|png|tiff?|heic|dng)$/i.test(title.trim()) ? '' : title.trim();
+  looksLikeFileName(title.trim()) ? '' : title.trim();
+
+// Flickr descriptions are HTML (links, <br>, entities); show them as plain
+// text with line breaks kept, never as markup. Tags are stripped before
+// decoding, so an encoded "&lt;b&gt;" stays visible text rather than a tag.
+// Placeholder descriptions some cameras write into every photo.
+const CAMERA_DEFAULTS =
+  /^(olympus digital camera|sony dsc|digital camera|kodak digital still camera|dcim|default)$/i;
+
+export const plainCaption = (html = '') => {
+  const text = decodeHTML(
+    html
+      .replace(/<br\s*\/?>/gi, '\n')
+      // A tag ends at the first ">" outside quotes ("a>b" in an href isn't it).
+      .replace(/<(?:[^>"']|"[^"]*"|'[^']*')*>/g, ''),
+  )
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+  return CAMERA_DEFAULTS.test(text) ? '' : text;
+};
 
 const formatDate = (photo: FlickrPhoto) => {
   if (!photo.datetaken || Number(photo.datetakenunknown)) return '';
@@ -41,7 +67,7 @@ const GEAR: [keyof PhotoExif, string][] = [
 ];
 
 const Label = ({ children }: { children: string }) => (
-  <dt className="text-[10px] uppercase tracking-widest text-gray-500">
+  <dt className="text-[10px] uppercase tracking-widest text-gray-400">
     {children}
   </dt>
 );
@@ -83,22 +109,28 @@ export const PhotoInfo = ({
   exif?: PhotoExif | null;
 }) => {
   const title = displayTitle(photo.title);
+  const caption = plainCaption(photo.description?._content);
   const date = formatDate(photo);
   const tags = visibleTags(photo.tags);
 
   return (
     <div className="space-y-6 text-sm">
-      {(title || date) && (
+      {(title || caption || date) && (
         <header className="space-y-1">
           {title && (
             <h2 className="text-lg font-light leading-snug text-white">
               {title}
             </h2>
           )}
+          {caption && (
+            <p className="whitespace-pre-line pb-1 text-sm leading-relaxed text-gray-300">
+              {caption}
+            </p>
+          )}
           {date && (
             <time
               dateTime={photo.datetaken}
-              className="block text-[10px] uppercase tracking-widest text-gray-500"
+              className="block text-[10px] uppercase tracking-widest text-gray-400"
             >
               {date}
             </time>
@@ -121,7 +153,7 @@ export const PhotoInfo = ({
         href={`https://www.flickr.com/photo.gne?id=${photo.id}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-block text-xs text-gray-500 transition-colors hover:text-white"
+        className="inline-block text-xs text-gray-400 transition-colors hover:text-white"
       >
         View on Flickr ↗
       </a>
