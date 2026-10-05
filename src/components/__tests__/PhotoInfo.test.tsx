@@ -93,6 +93,12 @@ describe('PhotoInfo', () => {
     expect(plainCaption('a &#1114112; b')).toBe('a \uFFFD b');
   });
 
+  it('strips tags whose quoted attributes contain ">"', () => {
+    expect(
+      plainCaption('<a href="https://x.com/?q=a>b" title=\'c>d\'>Mongolia</a>'),
+    ).toBe('Mongolia');
+  });
+
   it('keeps encoded markup as visible text', () => {
     expect(plainCaption('&lt;b&gt;not bold&lt;/b&gt;')).toBe('<b>not bold</b>');
   });

@@ -29,7 +29,10 @@ const CAMERA_DEFAULTS =
 
 export const plainCaption = (html = '') => {
   const text = decodeHTML(
-    html.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]*>/g, ''),
+    html
+      .replace(/<br\s*\/?>/gi, '\n')
+      // A tag ends at the first ">" outside quotes ("a>b" in an href isn't it).
+      .replace(/<(?:[^>"']|"[^"]*"|'[^']*')*>/g, ''),
   )
     .replace(/\n{3,}/g, '\n\n')
     .trim();
