@@ -8,9 +8,12 @@ import {
   getCategory,
 } from '@/config/galleries';
 import { getPhotosByTags, getPhotosets } from '@/lib/flickr';
-import { shareMetadata } from '@/lib/share';
+import { photoShareMetadata, shareMetadata, sharedPhoto } from '@/lib/share';
 
-type Props = { params: Promise<{ slug: string }> };
+type Props = {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ photo?: string | string[] }>;
+};
 
 // Only categories from the config exist; anything else 404s.
 export const dynamicParams = false;
@@ -18,12 +21,29 @@ export const dynamicParams = false;
 export const generateStaticParams = () =>
   galleryConfig.map((cat) => ({ slug: cat.slug }));
 
+// A link to one photo (?photo=<id>) previews that photo; reading the query
+// makes this page render per request rather than at build time.
 export const generateMetadata = async ({
   params,
+  searchParams,
 }: Props): Promise<Metadata> => {
   const { slug } = await params;
   const category = getCategory(slug);
   if (!category) return {};
+  const { photo: photoId } = await searchParams;
+  if (photoId && category.tags?.length) {
+    const photo = sharedPhoto(await getPhotosByTags(category.tags), photoId);
+    if (photo) {
+      return {
+        title: category.name,
+        ...photoShareMetadata({
+          photo,
+          pageTitle: category.name,
+          path: `/category/${slug}`,
+        }),
+      };
+    }
+  }
   // Preview with the first photo on the page: album covers come first, then
   // tagged photos.
   const cover = filterPhotosetsByConfig(await getPhotosets(), slug).find(

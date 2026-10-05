@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { previewImage, shareMetadata } from '../share';
+import {
+  photoShareMetadata,
+  previewImage,
+  shareMetadata,
+  sharedPhoto,
+} from '../share';
 
 describe('previewImage', () => {
   it('prefers the largest preview-friendly size', () => {
@@ -44,5 +49,56 @@ describe('shareMetadata', () => {
     const meta = shareMetadata({ description: 'x', path: '/' });
     expect(meta.twitter).toMatchObject({ card: 'summary' });
     expect(meta.openGraph).toMatchObject({ title: 'Alex Yule Photos' });
+  });
+});
+
+describe('photo links', () => {
+  const photo = (id: string, extra = {}) => ({
+    id,
+    secret: 's',
+    server: '1',
+    title: `Photo ${id}`,
+    url_m: `https://example.com/${id}_m.jpg`,
+    width_m: 500,
+    height_m: 333,
+    ...extra,
+  });
+  const photos = [photo('a'), photo('b', { url_m: undefined })];
+
+  it('finds the linked photo only if it is on the page and has an image', () => {
+    expect(sharedPhoto(photos, 'a')?.id).toBe('a');
+    expect(sharedPhoto(photos, 'b')).toBeUndefined();
+    expect(sharedPhoto(photos, 'gone')).toBeUndefined();
+    expect(sharedPhoto(photos, ['a', 'a'])).toBeUndefined();
+    expect(sharedPhoto(photos, undefined)).toBeUndefined();
+  });
+
+  it("previews the photo with its title and caption's first line", () => {
+    const meta = photoShareMetadata({
+      photo: photo('a', {
+        title: 'Deference',
+        description: { _content: 'Traditional Mongolian dance<br>Ulaanbaatar' },
+      }),
+      pageTitle: 'Travel',
+      path: '/category/travel',
+    });
+    expect(meta.openGraph).toMatchObject({
+      title: 'Deference',
+      description: 'Traditional Mongolian dance',
+      url: '/category/travel?photo=a',
+      images: [{ url: 'https://example.com/a_m.jpg' }],
+    });
+  });
+
+  it('falls back to the page for untitled, uncaptioned photos', () => {
+    const meta = photoShareMetadata({
+      photo: photo('a', { title: '20230715-P7150249' }),
+      pageTitle: 'Botanical',
+      path: '/category/botanical',
+    });
+    expect(meta.openGraph).toMatchObject({
+      title: 'Botanical',
+      description: 'From Botanical, by Alex Yule.',
+    });
   });
 });
