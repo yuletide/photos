@@ -23,7 +23,7 @@ export const Tile = ({
   tile: TileData;
   eager?: boolean;
 }) => (
-  <div className="break-inside-avoid">
+  <div>
     <Link href={tile.href} className="block group">
       {hasCover(tile) && (
         <Image
@@ -32,7 +32,8 @@ export const Tile = ({
           width={tile.cover.width_m}
           height={tile.cover.height_m}
           loading={eager ? 'eager' : 'lazy'}
-          className="w-full h-auto group-hover:opacity-80 transition-opacity"
+          // Same shape for every cover, so rows line up (TileGrid).
+          className="aspect-[4/3] w-full object-cover group-hover:opacity-80 transition-opacity"
         />
       )}
       <div className="mt-2">

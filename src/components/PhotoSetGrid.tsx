@@ -19,7 +19,8 @@ export const TileGrid = ({ tiles }: { tiles: TileData[] }) => {
   );
 
   return (
-    <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4">
+    // Rows, filled left to right, so tiles read in config order.
+    <div className="grid grid-cols-1 gap-x-4 gap-y-6 md:grid-cols-2 lg:grid-cols-3">
       {tiles.map((tile) => (
         <Tile key={tile.key} tile={tile} eager={eagerKeys.has(tile.key)} />
       ))}

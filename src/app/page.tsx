@@ -1,39 +1,41 @@
-import { photosetTile } from '@/components/PhotoSet';
 import { TileGrid } from '@/components/PhotoSetGrid';
 import { TileData } from '@/components/Tile';
 import { galleryConfig } from '@/config/galleries';
 import { getPhotosByTags, getPhotosets } from '@/lib/flickr';
 
-// Everything on the site, in config order: each category's albums, plus one
-// tile for each tag-based category (cover = its newest photo).
-const allTiles = async (): Promise<TileData[]> => {
+// The All page: one tile per category, in nav order, each opening its
+// category page. Cover: its first album's cover, else its newest tagged
+// photo. Count: the photos in its albums plus its tagged photos. Categories
+// with nothing in them yet are left out.
+const categoryTiles = async (): Promise<TileData[]> => {
   const photosets = new Map((await getPhotosets()).map((s) => [s.id, s]));
-  const seen = new Set<string>();
-
-  const perCategory = await Promise.all(
+  const tiles = await Promise.all(
     galleryConfig.map(async (category) => {
       const albums = category.photosetIds
-        .filter((id) => !seen.has(id) && seen.add(id))
         .map((id) => photosets.get(id))
-        .filter((set) => set !== undefined)
-        .map(photosetTile);
-
-      if (!category.tags?.length) return albums;
-      const photos = await getPhotosByTags(category.tags);
-      if (photos.length === 0) return albums;
-      const tagTile: TileData = {
-        key: `category-${category.slug}`,
+        .filter((set) => set !== undefined);
+      const tagged = category.tags?.length
+        ? await getPhotosByTags(category.tags)
+        : [];
+      const count =
+        albums.reduce((n, set) => n + Number(set.count_photos), 0) +
+        tagged.length;
+      if (count === 0) return [];
+      const tile: TileData = {
+        key: category.slug,
         href: `/category/${category.slug}`,
         title: category.name,
-        count: photos.length,
-        cover: photos.find((photo) => photo.url_m),
+        count,
+        cover:
+          albums.find((set) => set.primary_photo_extras?.url_m)
+            ?.primary_photo_extras ?? tagged.find((photo) => photo.url_m),
       };
-      return [...albums, tagTile];
+      return [tile];
     }),
   );
-  return perCategory.flat();
+  return tiles.flat();
 };
 
-const Home = async () => <TileGrid tiles={await allTiles()} />;
+const Home = async () => <TileGrid tiles={await categoryTiles()} />;
 
 export default Home;
