@@ -1,6 +1,6 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { PhotoGrid } from '../PhotoGrid';
+import { PhotoGrid, sizeLabel } from '../PhotoGrid';
 
 const photo = (id: string, extra = {}) => ({
   id,
@@ -16,6 +16,9 @@ const photo = (id: string, extra = {}) => ({
 
 const photos = [
   photo('a', {
+    url_h: 'https://example.com/a_h.jpg',
+    width_h: 1600,
+    height_h: 1067,
     url_k: 'https://example.com/a_k.jpg',
     width_k: 2048,
     height_k: 1365,
@@ -34,6 +37,7 @@ describe('PhotoGrid', () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.unstubAllGlobals();
     mockFetch.mockReset();
   });
@@ -175,5 +179,100 @@ describe('PhotoGrid', () => {
     // Closing a photo opened from the grid goes Back (popstate) to /sets/1.
     await vi.waitFor(() => expect(window.location.search).toBe(''));
     await vi.waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+  });
+
+  it('shows the small version right away when a large image fails', () => {
+    render(<PhotoGrid photos={photos} />);
+    fireEvent.click(screen.getAllByRole('link')[0]);
+    const img = () =>
+      document.querySelector<HTMLImageElement>('.yarl__slide_current img')!;
+    expect(img().getAttribute('src')).toBe('https://example.com/a_k.jpg');
+
+    fireEvent.error(img());
+    expect(img().getAttribute('src')).toBe('https://example.com/a_m.jpg');
+    expect(document.querySelector('.yarl__slide_error')).toBeNull();
+  });
+
+  it('retries upgrades with backoff and waits to preload neighbors until the current image loads', async () => {
+    vi.useFakeTimers();
+    class FakeImage {
+      onload: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+      src = '';
+      constructor() {
+        requests.push(this);
+      }
+    }
+    const requests: FakeImage[] = [];
+    vi.stubGlobal('Image', FakeImage);
+    const retryPhotos = [
+      photo('a', {
+        url_l: 'https://example.com/a_l.jpg',
+        width_l: 1024,
+        height_l: 683,
+        url_h: 'https://example.com/a_h.jpg',
+        width_h: 1600,
+        height_h: 1067,
+        url_k: 'https://example.com/a_k.jpg',
+        width_k: 2048,
+        height_k: 1365,
+      }),
+      photo('b'),
+    ];
+
+    render(<PhotoGrid photos={retryPhotos} />);
+    fireEvent.click(screen.getAllByRole('link')[0]);
+
+    const slideImages = () =>
+      document.querySelectorAll<HTMLImageElement>('.yarl__slide img');
+    const currentImage = () =>
+      document.querySelector<HTMLImageElement>('.yarl__slide_current img')!;
+    expect(slideImages()).toHaveLength(1);
+    fireEvent.error(currentImage());
+    expect(currentImage().getAttribute('src')).toBe(
+      'https://example.com/a_m.jpg',
+    );
+    expect(document.querySelector('.yarl__slide_error')).toBeNull();
+
+    for (const [index, delay] of [1000, 2000, 4000].entries()) {
+      expect(requests[index].src).toBe('https://example.com/a_l.jpg');
+      act(() => requests[index].onerror?.());
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(delay - 1);
+      });
+      expect(requests).toHaveLength(index + 1);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1);
+      });
+      expect(requests).toHaveLength(index + 2);
+      expect(document.querySelector('.yarl__slide_error')).toBeNull();
+      expect(slideImages()).toHaveLength(1);
+    }
+
+    await act(async () => {
+      requests[3].onload?.();
+      await Promise.resolve();
+    });
+    expect(currentImage().getAttribute('src')).toBe(
+      'https://example.com/a_l.jpg',
+    );
+    expect(slideImages()).toHaveLength(1);
+
+    await act(async () => {
+      fireEvent.load(currentImage());
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(
+      [...slideImages()].some(
+        (img) => img.getAttribute('src') === 'https://example.com/b_m.jpg',
+      ),
+    ).toBe(true);
+  });
+
+  it('labels Flickr sizes for the debug badge', () => {
+    expect(sizeLabel('https://x/1_abc_k.jpg')).toBe('2048px');
+    expect(sizeLabel('https://x/1_abc_b.jpg')).toBe('1024px');
+    expect(sizeLabel('https://x/1_abc.jpg')).toBe('500px');
+    expect(sizeLabel('')).toBe('loading');
   });
 });
