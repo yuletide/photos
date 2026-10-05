@@ -59,7 +59,7 @@ const PER_PAGE = 500;
 
 // Grid thumbnails (m), the larger sizes the lightbox picks from, and the
 // details shown in its info panel (EXIF is fetched separately, on demand).
-const PHOTO_EXTRAS = 'url_m,url_l,url_h,url_k,tags,date_taken';
+const PHOTO_EXTRAS = 'url_m,url_l,url_h,url_k,tags,date_taken,description';
 
 const fetchAllPages = async <T>(
   fetchPage: (page: number) => Promise<{ items: T[]; pages: number }>,
