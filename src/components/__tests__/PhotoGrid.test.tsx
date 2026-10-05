@@ -38,6 +38,7 @@ describe('PhotoGrid', () => {
 
   afterEach(() => {
     vi.useRealTimers();
+    vi.restoreAllMocks();
     vi.unstubAllGlobals();
     mockFetch.mockReset();
   });
@@ -142,27 +143,6 @@ describe('PhotoGrid', () => {
     expect(screen.getByRole('dialog')).toBeTruthy();
   });
 
-  it('uses one history entry while navigating and closing the lightbox', async () => {
-    render(<PhotoGrid photos={photos} />);
-    const initialHistoryLength = window.history.length;
-    const back = vi.spyOn(window.history, 'back');
-
-    fireEvent.click(screen.getAllByRole('link')[0]);
-    expect(window.location.search).toBe('?photo=a');
-    expect(window.history.length).toBe(initialHistoryLength + 1);
-
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-    await vi.waitFor(() => expect(window.location.search).toBe('?photo=b'));
-    expect(window.history.length).toBe(initialHistoryLength + 1);
-
-    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
-    await vi.waitFor(() => {
-      expect(back).toHaveBeenCalledOnce();
-      expect(window.location.search).toBe('');
-      expect(screen.queryByRole('dialog')).toBeNull();
-    });
-  });
-
   it('opens the photo from a shared link', () => {
     window.history.replaceState(null, '', '/sets/1?photo=b');
     render(<PhotoGrid photos={photos} />);
@@ -187,6 +167,7 @@ describe('PhotoGrid', () => {
   it('changing photos replaces history, and closing goes back to the gallery', async () => {
     render(<PhotoGrid photos={photos} />);
     const start = window.history.length;
+    const back = vi.spyOn(window.history, 'back');
 
     fireEvent.click(screen.getAllByRole('link')[0]);
     expect(window.location.search).toBe('?photo=a');
@@ -199,6 +180,7 @@ describe('PhotoGrid', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Close' }));
     // Closing a photo opened from the grid goes Back (popstate) to /sets/1.
     await vi.waitFor(() => expect(window.location.search).toBe(''));
+    expect(back).toHaveBeenCalledOnce();
     await vi.waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
   });
 
