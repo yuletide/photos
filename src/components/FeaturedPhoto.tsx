@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 // Just what the front page needs per photo; the full list is sent to the
 // browser so ←/→ can step through it.
@@ -48,17 +48,11 @@ const Arrow = ({ direction }: { direction: 'left' | 'right' }) => (
   </svg>
 );
 
-// Front page: a random photo from the site (picked per visit on the server),
-// large, with its caption. ←/→ (buttons or keys) step through the rest in
-// site order; clicking opens it in the lightbox on its album/category page.
-export const FeaturedPhoto = ({
-  photos,
-  start,
-}: {
-  photos: FeaturedPhotoData[];
-  start: number;
-}) => {
-  const [index, setIndex] = useState(start);
+// Front page: one photo, large, with its caption. ←/→ (buttons or keys) step
+// through the rest in the order given (shuffled per visit, so it starts on a
+// random photo); clicking opens it in the lightbox on its album/category page.
+export const FeaturedPhoto = ({ photos }: { photos: FeaturedPhotoData[] }) => {
+  const [index, setIndex] = useState(0);
   const count = photos.length;
   const step = (by: number) => setIndex((i) => (i + by + count) % count);
   const photo = photos[index];
@@ -73,11 +67,18 @@ export const FeaturedPhoto = ({
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [count]);
 
-  const preloadNeighbors = () => {
+  const image = useRef<HTMLImageElement>(null);
+  const preloadNeighbors = useCallback(() => {
     if (count < 2) return;
     preload(photos[(index + 1) % count]);
     preload(photos[(index - 1 + count) % count]);
-  };
+  }, [photos, index, count]);
+
+  // The first image can finish loading before hydration, when onLoad isn't
+  // attached yet; preloaded neighbors are also complete as soon as shown.
+  useEffect(() => {
+    if (image.current?.complete) preloadNeighbors();
+  }, [preloadNeighbors]);
 
   const arrowClass =
     'absolute top-1/2 -translate-y-1/2 p-2 text-white/70 drop-shadow transition-colors hover:text-white';
@@ -90,6 +91,7 @@ export const FeaturedPhoto = ({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             key={photo.id}
+            ref={image}
             src={photo.src}
             srcSet={photo.srcSet}
             sizes={imageSizes(photo)}

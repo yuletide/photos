@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { FeaturedPhoto, type FeaturedPhotoData } from '../FeaturedPhoto';
 
 const featured = (id: string, extra = {}): FeaturedPhotoData => ({
@@ -18,16 +18,21 @@ const photos = [featured('a'), featured('b'), featured('c')];
 const shownTitle = () => screen.getByRole('img').getAttribute('alt');
 
 describe('FeaturedPhoto', () => {
-  it('starts on the given photo and links it to the lightbox', () => {
-    render(<FeaturedPhoto photos={photos} start={1} />);
-    expect(shownTitle()).toBe('Photo b');
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it('starts on the first photo and links it to the lightbox', () => {
+    render(<FeaturedPhoto photos={photos} />);
+    expect(shownTitle()).toBe('Photo a');
     expect(screen.getByRole('link').getAttribute('href')).toBe(
-      '/sets/1?photo=b',
+      '/sets/1?photo=a',
     );
   });
 
   it('steps with the arrow buttons and wraps around', () => {
-    render(<FeaturedPhoto photos={photos} start={0} />);
+    render(<FeaturedPhoto photos={photos} />);
     fireEvent.click(screen.getByRole('button', { name: 'Previous photo' }));
     expect(shownTitle()).toBe('Photo c');
     fireEvent.click(screen.getByRole('button', { name: 'Next photo' }));
@@ -36,7 +41,7 @@ describe('FeaturedPhoto', () => {
   });
 
   it('steps with the ← and → keys', () => {
-    render(<FeaturedPhoto photos={photos} start={0} />);
+    render(<FeaturedPhoto photos={photos} />);
     fireEvent.keyDown(document, { key: 'ArrowRight' });
     expect(shownTitle()).toBe('Photo b');
     fireEvent.keyDown(document, { key: 'ArrowLeft' });
@@ -53,7 +58,6 @@ describe('FeaturedPhoto', () => {
           featured('x', { title: '', caption: 'Ulaanbaatar\nmore' }),
           featured('y', { title: '', caption: '' }),
         ]}
-        start={0}
       />,
     );
     expect(shownTitle()).toBe('Ulaanbaatar');
@@ -62,7 +66,27 @@ describe('FeaturedPhoto', () => {
   });
 
   it('hides the arrows when there is only one photo', () => {
-    render(<FeaturedPhoto photos={[featured('a')]} start={0} />);
+    render(<FeaturedPhoto photos={[featured('a')]} />);
     expect(screen.queryByRole('button')).toBeNull();
+  });
+
+  it('preloads both neighbors even if the photo loaded before hydration', () => {
+    const preloaded: string[] = [];
+    vi.stubGlobal(
+      'Image',
+      class {
+        sizes = '';
+        src = '';
+        set srcset(value: string) {
+          preloaded.push(value);
+        }
+      },
+    );
+    // Already loaded by the time React attaches onLoad.
+    vi.spyOn(HTMLImageElement.prototype, 'complete', 'get').mockReturnValue(
+      true,
+    );
+    render(<FeaturedPhoto photos={photos} />);
+    expect(preloaded).toEqual([photos[1].srcSet, photos[2].srcSet]);
   });
 });

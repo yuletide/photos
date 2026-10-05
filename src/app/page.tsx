@@ -26,11 +26,17 @@ const toFeatured = ({ photo, href }: PublishedPhoto): FeaturedPhotoData => ({
   height: Number(photo.height_m),
 });
 
-// A different photo each visit. connection() makes the page render per
+// A different order each visit, so the front page opens on a random photo
+// and ←/→ jump around the whole site. connection() makes the page render per
 // request (Flickr data stays cached) instead of once at build time.
-const pickStart = async (count: number) => {
+const shuffle = async <T,>(items: T[]) => {
   await connection();
-  return Math.floor(Math.random() * count);
+  const out = [...items];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
 };
 
 const Home = async () => {
@@ -38,14 +44,15 @@ const Home = async () => {
     getPhotosets().then((sets) => filterPhotosetsByConfig(sets)),
     getPublishedPhotos(),
   ]);
-  const featured = published
-    .filter(({ photo }) => photo.url_m && photo.width_m && photo.height_m)
-    .map(toFeatured);
-  const start = await pickStart(featured.length);
+  const featured = await shuffle(
+    published
+      .filter(({ photo }) => photo.url_m && photo.width_m && photo.height_m)
+      .map(toFeatured),
+  );
 
   return (
     <>
-      {featured.length > 0 && <FeaturedPhoto photos={featured} start={start} />}
+      {featured.length > 0 && <FeaturedPhoto photos={featured} />}
       <PhotoSetGrid photosets={photosets} />
     </>
   );
