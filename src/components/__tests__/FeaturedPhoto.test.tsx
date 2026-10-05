@@ -111,14 +111,12 @@ describe('FeaturedPhoto', () => {
     const wait = (ms: number) => act(() => vi.advanceTimersByTime(ms));
     const play = () =>
       fireEvent.click(screen.getByRole('button', { name: 'Play slideshow' }));
+    const pause = () =>
+      fireEvent.click(screen.getByRole('button', { name: 'Pause slideshow' }));
 
-    it('starts paused, then advances every SLIDE_MS once playing', () => {
+    it('plays on arrival, advancing every SLIDE_MS until paused', () => {
       vi.useFakeTimers();
       render(<FeaturedPhoto photos={photos} />);
-      wait(SLIDE_MS * 2);
-      expect(shownTitle()).toBe('Photo a');
-
-      play();
       wait(SLIDE_MS - 1);
       expect(shownTitle()).toBe('Photo a');
       wait(1);
@@ -126,15 +124,31 @@ describe('FeaturedPhoto', () => {
       wait(SLIDE_MS);
       expect(shownTitle()).toBe('Photo c');
 
-      fireEvent.click(screen.getByRole('button', { name: 'Pause slideshow' }));
+      pause();
       wait(SLIDE_MS * 2);
       expect(shownTitle()).toBe('Photo c');
+
+      play();
+      wait(SLIDE_MS);
+      expect(shownTitle()).toBe('Photo a');
+    });
+
+    it('starts paused for viewers who prefer reduced motion', () => {
+      vi.useFakeTimers();
+      vi.stubGlobal('matchMedia', (query: string) => ({
+        matches: query === '(prefers-reduced-motion: reduce)',
+      }));
+      render(<FeaturedPhoto photos={photos} />);
+      wait(SLIDE_MS * 2);
+      expect(shownTitle()).toBe('Photo a');
+      expect(
+        screen.getByRole('button', { name: 'Play slideshow' }),
+      ).toBeTruthy();
     });
 
     it('gives a photo chosen with ←/→ its full time', () => {
       vi.useFakeTimers();
       render(<FeaturedPhoto photos={photos} />);
-      play();
       wait(SLIDE_MS - 1000);
       fireEvent.keyDown(document, { key: 'ArrowRight' });
       expect(shownTitle()).toBe('Photo b');
@@ -148,7 +162,6 @@ describe('FeaturedPhoto', () => {
       vi.useFakeTimers();
       const hidden = vi.spyOn(document, 'hidden', 'get').mockReturnValue(true);
       render(<FeaturedPhoto photos={photos} />);
-      play();
       wait(SLIDE_MS * 3);
       expect(shownTitle()).toBe('Photo a');
 

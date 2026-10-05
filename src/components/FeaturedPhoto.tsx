@@ -1,7 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 
 // Just what the front page needs per photo; the full list is sent to the
 // browser so ←/→ can step through it.
@@ -53,6 +59,15 @@ const Arrow = ({ direction }: { direction: 'left' | 'right' }) => (
 // How long each photo stays up while the slideshow plays.
 export const SLIDE_MS = 6000;
 
+const REDUCED_MOTION = '(prefers-reduced-motion: reduce)';
+const prefersReducedMotion = () =>
+  window.matchMedia?.(REDUCED_MOTION).matches ?? false;
+const subscribeToMotion = (onChange: () => void) => {
+  const query = window.matchMedia?.(REDUCED_MOTION);
+  query?.addEventListener?.('change', onChange);
+  return () => query?.removeEventListener?.('change', onChange);
+};
+
 const PlayIcon = ({ playing }: { playing: boolean }) => (
   <svg viewBox="0 0 24 24" className="size-6" aria-hidden="true">
     <path
@@ -64,13 +79,21 @@ const PlayIcon = ({ playing }: { playing: boolean }) => (
 
 // Front page: one photo, large, with its caption. ←/→ (buttons or keys) step
 // through the rest in the order given (shuffled per visit, so it starts on a
-// random photo), and the play button turns that into a slideshow. Clicking
+// random photo), advancing on its own as a slideshow until paused. Clicking
 // the photo opens it in the lightbox on its album/category page.
 export const FeaturedPhoto = ({ photos }: { photos: FeaturedPhotoData[] }) => {
   const [index, setIndex] = useState(0);
   // Fade in photos after the first, which shows immediately (it's the LCP).
   const [stepped, setStepped] = useState(false);
-  const [playing, setPlaying] = useState(false);
+  // Plays on arrival, except for viewers who've asked for reduced motion;
+  // after that, whatever they choose with the play/pause button.
+  const reducedMotion = useSyncExternalStore(
+    subscribeToMotion,
+    prefersReducedMotion,
+    () => false,
+  );
+  const [choice, setChoice] = useState<boolean | null>(null);
+  const playing = choice ?? !reducedMotion;
   const count = photos.length;
   const photo = photos[index];
 
@@ -170,7 +193,7 @@ export const FeaturedPhoto = ({ photos }: { photos: FeaturedPhotoData[] }) => {
             <button
               type="button"
               aria-label={playing ? 'Pause slideshow' : 'Play slideshow'}
-              onClick={() => setPlaying((p) => !p)}
+              onClick={() => setChoice(!playing)}
               className="absolute bottom-2 right-2 rounded-full bg-black/40 p-2 text-white/80 transition-colors hover:bg-black/60 hover:text-white"
             >
               <PlayIcon playing={playing} />
