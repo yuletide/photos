@@ -3,7 +3,7 @@ import {
   FeaturedPhoto,
   type FeaturedPhotoData,
 } from '@/components/FeaturedPhoto';
-import { displayTitle, plainCaption } from '@/components/PhotoInfo';
+import { displayTitle, formatDate, plainCaption } from '@/components/PhotoInfo';
 import { PhotoSetGrid } from '@/components/PhotoSetGrid';
 import { filterPhotosetsByConfig } from '@/config/galleries';
 import { getPhotosets } from '@/lib/flickr';
@@ -16,6 +16,7 @@ const toFeatured = ({ photo, href }: PublishedPhoto): FeaturedPhotoData => ({
   href,
   title: displayTitle(photo.title),
   caption: plainCaption(photo.description?._content),
+  date: formatDate(photo),
   src: photo.url_m!,
   // Flickr's pre-sized JPEGs, so phones don't fetch the 2048px one.
   srcSet: SIZES.flatMap((size) => {

@@ -42,3 +42,10 @@ body {
     right: 18rem;
   }
 }
+
+/* Front-page photo fading in as the slideshow (or ←/→) changes it. */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}

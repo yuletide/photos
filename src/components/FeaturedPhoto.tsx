@@ -11,6 +11,8 @@ export interface FeaturedPhotoData {
   href: string;
   title: string;
   caption: string;
+  // When it was taken ("November 9, 2017"); empty if Flickr doesn't know.
+  date: string;
   src: string;
   srcSet: string;
   width: number;
@@ -48,24 +50,65 @@ const Arrow = ({ direction }: { direction: 'left' | 'right' }) => (
   </svg>
 );
 
+// How long each photo stays up while the slideshow plays.
+export const SLIDE_MS = 6000;
+
+const PlayIcon = ({ playing }: { playing: boolean }) => (
+  <svg viewBox="0 0 24 24" className="size-6" aria-hidden="true">
+    <path
+      fill="currentColor"
+      d={playing ? 'M6 5h4v14H6zm8 0h4v14h-4z' : 'M8 5.14v13.72L19 12z'}
+    />
+  </svg>
+);
+
 // Front page: one photo, large, with its caption. ←/→ (buttons or keys) step
 // through the rest in the order given (shuffled per visit, so it starts on a
-// random photo); clicking opens it in the lightbox on its album/category page.
+// random photo), and the play button turns that into a slideshow. Clicking
+// the photo opens it in the lightbox on its album/category page.
 export const FeaturedPhoto = ({ photos }: { photos: FeaturedPhotoData[] }) => {
   const [index, setIndex] = useState(0);
+  // Fade in photos after the first, which shows immediately (it's the LCP).
+  const [stepped, setStepped] = useState(false);
+  const [playing, setPlaying] = useState(false);
   const count = photos.length;
-  const step = (by: number) => setIndex((i) => (i + by + count) % count);
   const photo = photos[index];
+
+  const step = useCallback(
+    (by: number) => {
+      setStepped(true);
+      setIndex((i) => (i + by + count) % count);
+    },
+    [count],
+  );
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
-      if (e.key === 'ArrowLeft') setIndex((i) => (i - 1 + count) % count);
-      if (e.key === 'ArrowRight') setIndex((i) => (i + 1) % count);
+      if (e.key === 'ArrowLeft') step(-1);
+      if (e.key === 'ArrowRight') step(1);
     };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [count]);
+  }, [step]);
+
+  // Slideshow: next photo after SLIDE_MS. The count restarts whenever the
+  // photo changes (so ←/→ give the new photo its full time) and waits while
+  // the tab is hidden.
+  useEffect(() => {
+    if (!playing || count < 2) return;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const restart = () => {
+      clearTimeout(timer);
+      if (!document.hidden) timer = setTimeout(() => step(1), SLIDE_MS);
+    };
+    restart();
+    document.addEventListener('visibilitychange', restart);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('visibilitychange', restart);
+    };
+  }, [playing, index, count, step]);
 
   const image = useRef<HTMLImageElement>(null);
   const preloadNeighbors = useCallback(() => {
@@ -101,7 +144,9 @@ export const FeaturedPhoto = ({ photos }: { photos: FeaturedPhotoData[] }) => {
             alt={photo.title || photo.caption.split('\n')[0] || 'Photo'}
             fetchPriority="high"
             onLoad={preloadNeighbors}
-            className="mx-auto h-auto max-h-[70vh] w-auto max-w-full"
+            className={`mx-auto h-auto max-h-[70vh] w-auto max-w-full ${
+              stepped ? 'motion-safe:animate-[fade-in_400ms_ease-out]' : ''
+            }`}
           />
         </Link>
         {count > 1 && (
@@ -122,10 +167,18 @@ export const FeaturedPhoto = ({ photos }: { photos: FeaturedPhotoData[] }) => {
             >
               <Arrow direction="right" />
             </button>
+            <button
+              type="button"
+              aria-label={playing ? 'Pause slideshow' : 'Play slideshow'}
+              onClick={() => setPlaying((p) => !p)}
+              className="absolute bottom-2 right-2 rounded-full bg-black/40 p-2 text-white/80 transition-colors hover:bg-black/60 hover:text-white"
+            >
+              <PlayIcon playing={playing} />
+            </button>
           </>
         )}
       </div>
-      {(photo.title || photo.caption) && (
+      {(photo.title || photo.caption || photo.date) && (
         <figcaption className="mt-3 max-w-prose space-y-1">
           {photo.title && (
             <p className="text-sm text-gray-200">{photo.title}</p>
@@ -135,6 +188,7 @@ export const FeaturedPhoto = ({ photos }: { photos: FeaturedPhotoData[] }) => {
               {photo.caption}
             </p>
           )}
+          {photo.date && <p className="text-xs text-gray-400">{photo.date}</p>}
         </figcaption>
       )}
     </figure>

@@ -1,12 +1,17 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { FeaturedPhoto, type FeaturedPhotoData } from '../FeaturedPhoto';
+import {
+  FeaturedPhoto,
+  SLIDE_MS,
+  type FeaturedPhotoData,
+} from '../FeaturedPhoto';
 
 const featured = (id: string, extra = {}): FeaturedPhotoData => ({
   id,
   href: '/sets/1',
   title: `Photo ${id}`,
   caption: '',
+  date: '',
   src: `https://example.com/${id}_m.jpg`,
   srcSet: `https://example.com/${id}_m.jpg 500w`,
   width: 500,
@@ -19,6 +24,7 @@ const shownTitle = () => screen.getByRole('img').getAttribute('alt');
 
 describe('FeaturedPhoto', () => {
   afterEach(() => {
+    vi.useRealTimers();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });
@@ -65,6 +71,17 @@ describe('FeaturedPhoto', () => {
     expect(shownTitle()).toBe('Photo');
   });
 
+  it('shows when the photo was taken, if known', () => {
+    render(
+      <FeaturedPhoto
+        photos={[featured('a', { date: 'March 3, 1998' }), featured('b')]}
+      />,
+    );
+    expect(screen.getByText('March 3, 1998')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Next photo' }));
+    expect(screen.queryByText('March 3, 1998')).toBeNull();
+  });
+
   it('hides the arrows when there is only one photo', () => {
     render(<FeaturedPhoto photos={[featured('a')]} />);
     expect(screen.queryByRole('button')).toBeNull();
@@ -88,5 +105,59 @@ describe('FeaturedPhoto', () => {
     );
     render(<FeaturedPhoto photos={photos} />);
     expect(preloaded).toEqual([photos[1].srcSet, photos[2].srcSet]);
+  });
+
+  describe('slideshow', () => {
+    const wait = (ms: number) => act(() => vi.advanceTimersByTime(ms));
+    const play = () =>
+      fireEvent.click(screen.getByRole('button', { name: 'Play slideshow' }));
+
+    it('starts paused, then advances every SLIDE_MS once playing', () => {
+      vi.useFakeTimers();
+      render(<FeaturedPhoto photos={photos} />);
+      wait(SLIDE_MS * 2);
+      expect(shownTitle()).toBe('Photo a');
+
+      play();
+      wait(SLIDE_MS - 1);
+      expect(shownTitle()).toBe('Photo a');
+      wait(1);
+      expect(shownTitle()).toBe('Photo b');
+      wait(SLIDE_MS);
+      expect(shownTitle()).toBe('Photo c');
+
+      fireEvent.click(screen.getByRole('button', { name: 'Pause slideshow' }));
+      wait(SLIDE_MS * 2);
+      expect(shownTitle()).toBe('Photo c');
+    });
+
+    it('gives a photo chosen with ←/→ its full time', () => {
+      vi.useFakeTimers();
+      render(<FeaturedPhoto photos={photos} />);
+      play();
+      wait(SLIDE_MS - 1000);
+      fireEvent.keyDown(document, { key: 'ArrowRight' });
+      expect(shownTitle()).toBe('Photo b');
+      wait(SLIDE_MS - 1);
+      expect(shownTitle()).toBe('Photo b');
+      wait(1);
+      expect(shownTitle()).toBe('Photo c');
+    });
+
+    it('waits while the tab is hidden', () => {
+      vi.useFakeTimers();
+      const hidden = vi.spyOn(document, 'hidden', 'get').mockReturnValue(true);
+      render(<FeaturedPhoto photos={photos} />);
+      play();
+      wait(SLIDE_MS * 3);
+      expect(shownTitle()).toBe('Photo a');
+
+      hidden.mockReturnValue(false);
+      act(() => {
+        document.dispatchEvent(new Event('visibilitychange'));
+      });
+      wait(SLIDE_MS);
+      expect(shownTitle()).toBe('Photo b');
+    });
   });
 });
