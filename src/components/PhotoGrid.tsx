@@ -193,13 +193,18 @@ const RetryingSlide = ({
   // Width of the best version loaded so far, so coming back to a slide picks
   // up where its upgrade left off instead of stepping back down.
   const upgradedWidth = useRef(0);
+  // Rotating or toggling the info panel resizes the slide; re-pick the size.
+  const { width: rectWidth, height: rectHeight } = rect;
 
   useEffect(() => {
     if (!failed || !photo || !isCurrent) return;
     let cancelled = false;
     (async () => {
       setUpgrading(true);
-      for (const size of upgradeSizes(photo, rect)) {
+      for (const size of upgradeSizes(photo, {
+        width: rectWidth,
+        height: rectHeight,
+      })) {
         const candidate = sizedSlide(photo, size, slide.alt);
         const width = Number(photo[`width_${size}`]);
         if (
@@ -224,9 +229,7 @@ const RetryingSlide = ({
     return () => {
       cancelled = true;
     };
-    // rect is read once per upgrade; resizing mid-upgrade needn't restart it.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [failed, photo, slide.alt, isCurrent]);
+  }, [failed, photo, slide.alt, isCurrent, rectWidth, rectHeight]);
 
   if (!photo) return undefined;
   const shown =
