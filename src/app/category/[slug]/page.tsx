@@ -29,14 +29,32 @@ const CategoryPage = async ({ params }: Props) => {
   const category = getCategory(slug);
   if (!category) notFound();
 
-  if (!category.tags?.length) {
+  return (
+    <>
+      <h2 className="mb-6 text-center text-xl font-light tracking-wide">
+        {category.name}
+      </h2>
+      <CategoryContent slug={slug} tags={category.tags} />
+    </>
+  );
+};
+
+const CategoryContent = async ({
+  slug,
+  tags,
+}: {
+  slug: string;
+  tags?: string[];
+}) => {
+  if (!tags?.length) {
     const photosets = filterPhotosetsByConfig(await getPhotosets(), slug);
     return <PhotoSetGrid photosets={photosets} />;
   }
 
+  const hasAlbums = Boolean(getCategory(slug)?.photosetIds.length);
   const [photos, photosets] = await Promise.all([
-    getPhotosByTags(category.tags),
-    category.photosetIds.length
+    getPhotosByTags(tags),
+    hasAlbums
       ? getPhotosets().then((sets) => filterPhotosetsByConfig(sets, slug))
       : [],
   ]);
