@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { PhotoGrid, sizeLabel } from '../PhotoGrid';
+import { PhotoGrid, sizeLabel, upgradeSizes } from '../PhotoGrid';
 
 const photo = (id: string, extra = {}) => ({
   id,
@@ -38,6 +38,7 @@ describe('PhotoGrid', () => {
 
   afterEach(() => {
     vi.useRealTimers();
+    vi.restoreAllMocks();
     vi.unstubAllGlobals();
     mockFetch.mockReset();
   });
@@ -216,6 +217,7 @@ describe('PhotoGrid', () => {
 
   it('retries upgrades with backoff and waits to preload neighbors until the current image loads', async () => {
     vi.useFakeTimers();
+    vi.spyOn(Math, 'random').mockReturnValue(0.5); // no jitter
     class FakeImage {
       onload: (() => void) | null = null;
       onerror: (() => void) | null = null;
@@ -288,6 +290,34 @@ describe('PhotoGrid', () => {
         (img) => img.getAttribute('src') === 'https://example.com/b_m.jpg',
       ),
     ).toBe(true);
+  });
+
+  it('upgrades to 1024px, then the size the screen needs', () => {
+    const sized = photo('s', {
+      url_l: 'l',
+      width_l: 1024,
+      height_l: 683,
+      url_h: 'h',
+      width_h: 1600,
+      height_h: 1067,
+      url_k: 'k',
+      width_k: 2048,
+      height_k: 1365,
+    });
+    const at = (width: number, height: number, dpr: number) => {
+      vi.stubGlobal('devicePixelRatio', dpr);
+      return upgradeSizes(sized, { width, height });
+    };
+    expect(at(390, 664, 3)).toEqual(['l', 'h']); // phone: 1170px wide
+    expect(at(390, 664, 2)).toEqual(['l']); // 780px: 1024 is enough
+    expect(at(1440, 900, 2)).toEqual(['l', 'k']); // height-bound: 2700px
+    // Without 2048px, the largest there is.
+    expect(
+      upgradeSizes(
+        { ...sized, url_k: undefined },
+        { width: 1440, height: 900 },
+      ),
+    ).toEqual(['l', 'h']);
   });
 
   it('labels Flickr sizes for the debug badge', () => {
