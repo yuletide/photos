@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { PhotoGrid, sizeLabel } from '../PhotoGrid';
+import { PhotoGrid, sizeLabel, upgradeSizes } from '../PhotoGrid';
 
 const photo = (id: string, extra = {}) => ({
   id,
@@ -38,6 +38,7 @@ describe('PhotoGrid', () => {
 
   afterEach(() => {
     vi.useRealTimers();
+    vi.restoreAllMocks();
     vi.unstubAllGlobals();
     mockFetch.mockReset();
   });
@@ -142,27 +143,6 @@ describe('PhotoGrid', () => {
     expect(screen.getByRole('dialog')).toBeTruthy();
   });
 
-  it('uses one history entry while navigating and closing the lightbox', async () => {
-    render(<PhotoGrid photos={photos} />);
-    const initialHistoryLength = window.history.length;
-    const back = vi.spyOn(window.history, 'back');
-
-    fireEvent.click(screen.getAllByRole('link')[0]);
-    expect(window.location.search).toBe('?photo=a');
-    expect(window.history.length).toBe(initialHistoryLength + 1);
-
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-    await vi.waitFor(() => expect(window.location.search).toBe('?photo=b'));
-    expect(window.history.length).toBe(initialHistoryLength + 1);
-
-    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
-    await vi.waitFor(() => {
-      expect(back).toHaveBeenCalledOnce();
-      expect(window.location.search).toBe('');
-      expect(screen.queryByRole('dialog')).toBeNull();
-    });
-  });
-
   it('opens the photo from a shared link', () => {
     window.history.replaceState(null, '', '/sets/1?photo=b');
     render(<PhotoGrid photos={photos} />);
@@ -187,6 +167,7 @@ describe('PhotoGrid', () => {
   it('changing photos replaces history, and closing goes back to the gallery', async () => {
     render(<PhotoGrid photos={photos} />);
     const start = window.history.length;
+    const back = vi.spyOn(window.history, 'back');
 
     fireEvent.click(screen.getAllByRole('link')[0]);
     expect(window.location.search).toBe('?photo=a');
@@ -199,6 +180,7 @@ describe('PhotoGrid', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Close' }));
     // Closing a photo opened from the grid goes Back (popstate) to /sets/1.
     await vi.waitFor(() => expect(window.location.search).toBe(''));
+    expect(back).toHaveBeenCalledOnce();
     await vi.waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
   });
 
@@ -216,6 +198,7 @@ describe('PhotoGrid', () => {
 
   it('retries upgrades with backoff and waits to preload neighbors until the current image loads', async () => {
     vi.useFakeTimers();
+    vi.spyOn(Math, 'random').mockReturnValue(0.5); // no jitter
     class FakeImage {
       onload: (() => void) | null = null;
       onerror: (() => void) | null = null;
@@ -288,6 +271,34 @@ describe('PhotoGrid', () => {
         (img) => img.getAttribute('src') === 'https://example.com/b_m.jpg',
       ),
     ).toBe(true);
+  });
+
+  it('upgrades to 1024px, then the size the screen needs', () => {
+    const sized = photo('s', {
+      url_l: 'l',
+      width_l: 1024,
+      height_l: 683,
+      url_h: 'h',
+      width_h: 1600,
+      height_h: 1067,
+      url_k: 'k',
+      width_k: 2048,
+      height_k: 1365,
+    });
+    const at = (width: number, height: number, dpr: number) => {
+      vi.stubGlobal('devicePixelRatio', dpr);
+      return upgradeSizes(sized, { width, height });
+    };
+    expect(at(390, 664, 3)).toEqual(['l', 'h']); // phone: 1170px wide
+    expect(at(390, 664, 2)).toEqual(['l']); // 780px: 1024 is enough
+    expect(at(1440, 900, 2)).toEqual(['l', 'k']); // height-bound: 2700px
+    // Without 2048px, the largest there is.
+    expect(
+      upgradeSizes(
+        { ...sized, url_k: undefined },
+        { width: 1440, height: 900 },
+      ),
+    ).toEqual(['l', 'h']);
   });
 
   it('labels Flickr sizes for the debug badge', () => {
