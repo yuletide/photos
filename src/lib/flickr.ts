@@ -56,8 +56,12 @@ const callFlickr = async <T>(
   }
 
   // Flickr returns HTTP 200 with stat "fail" for API-level errors.
-  const body = JSON.parse(await res.text(), (_key, value) =>
-    typeof value === 'string' ? proxiedImage(value) : value,
+  // Image URLs are the url_m/url_l/... fields; other text (captions, EXIF)
+  // is left alone even if it mentions a Flickr image URL.
+  const body = JSON.parse(await res.text(), (key, value) =>
+    key.startsWith('url_') && typeof value === 'string'
+      ? proxiedImage(value)
+      : value,
   );
   if (body.stat !== 'ok') {
     throw new Error(`Flickr ${method} failed: ${body.message ?? 'unknown'}`);

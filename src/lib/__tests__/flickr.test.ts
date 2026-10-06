@@ -36,7 +36,10 @@ describe('flickr client', () => {
               primary_photo_extras: {
                 url_m: 'https://live.staticflickr.com/65535/9_abc.jpg',
               },
-              description: { _content: 'see https://example.com' },
+              description: {
+                _content:
+                  'https://live.staticflickr.com/65535/9_abc.jpg is my ref',
+              },
             },
           ],
         },
@@ -44,7 +47,10 @@ describe('flickr client', () => {
     );
     const [set] = await getPhotosets();
     expect(set.primary_photo_extras?.url_m).toBe('/flickr/65535/9_abc.jpg');
-    expect(set.description._content).toBe('see https://example.com');
+    // Only image fields are rewritten, not text that mentions an image URL.
+    expect(set.description._content).toBe(
+      'https://live.staticflickr.com/65535/9_abc.jpg is my ref',
+    );
   });
 
   it('fetches photosets with credentials and ISR caching', async () => {
