@@ -21,14 +21,18 @@ export const PhotoSet = ({
             width={cover.width_m}
             height={cover.height_m}
             loading={eager ? 'eager' : 'lazy'}
+            // Two columns on phones, three from lg (see PhotoSetGrid).
+            sizes="(min-width: 1024px) 33vw, 50vw"
             className="w-full h-auto group-hover:opacity-80 transition-opacity"
           />
         )}
-        <div className="mt-2">
-          <h2 className="font-medium text-gray-200 group-hover:text-white transition-colors">
+        <div className="mt-1.5 md:mt-2">
+          <h2 className="text-sm leading-snug font-medium text-gray-200 group-hover:text-white transition-colors md:text-base">
             {set.title._content}
           </h2>
-          <p className="text-sm text-gray-500">{set.count_photos} photos</p>
+          <p className="text-xs text-gray-500 md:text-sm">
+            {set.count_photos} photos
+          </p>
         </div>
       </Link>
     </div>
