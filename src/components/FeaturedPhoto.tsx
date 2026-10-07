@@ -25,14 +25,20 @@ export interface FeaturedPhotoData {
   height: number;
 }
 
-// The rendered width is the smaller of the page width (100vw minus main's
-// 2rem padding) and 70vh x the photo's aspect ratio (the height cap). The
-// height cap binds once the viewport is wider than 0.7 x ratio, so express
-// that as an aspect-ratio media condition the browser can use to pick a size.
+// The photo sits in a fixed-size stage (see FeaturedPhoto): page width W
+// (100vw minus main's 2rem padding) by min(70vh, 0.75W). It's drawn at
+// min(W, ratio x stage height). For landscape photos (ratio >= 4/3) that's W
+// until 70vh x ratio is smaller; for taller photos it's ratio x 0.75W until
+// 70vh binds. Express the switch as an aspect-ratio media condition the
+// browser can use to pick a size.
 export const imageSizes = ({ width, height }: FeaturedPhotoData) => {
   const ratio = width / height || 1;
-  const switchAt = Math.round(0.7 * ratio * 1000);
-  return `(max-aspect-ratio: ${switchAt}/1000) calc(100vw - 2rem), calc(70vh * ${ratio.toFixed(3)})`;
+  const byHeight = `calc(70vh * ${ratio.toFixed(3)})`;
+  if (ratio >= 4 / 3) {
+    const switchAt = Math.round(0.7 * ratio * 1000);
+    return `(max-aspect-ratio: ${switchAt}/1000) calc(100vw - 2rem), ${byHeight}`;
+  }
+  return `(max-aspect-ratio: 933/1000) calc((100vw - 2rem) * ${(0.75 * ratio).toFixed(3)}), ${byHeight}`;
 };
 
 // Warm the cache for a photo the viewer may step to next.
@@ -150,9 +156,14 @@ export const FeaturedPhoto = ({ photos }: { photos: FeaturedPhotoData[] }) => {
     'absolute top-1/2 -translate-y-1/2 p-2 text-white/70 drop-shadow transition-colors hover:text-white';
 
   return (
-    <figure className="mx-auto mb-16 w-fit max-w-full">
-      <div className="relative">
-        <Link href={`${photo.href}?photo=${photo.id}`} className="block">
+    // Fixed-size stage and caption area, so stepping between photos of
+    // different shapes (or caption lengths) never moves the albums below.
+    <figure className="mb-16">
+      <div className="relative h-[min(70vh,calc((100vw_-_2rem)*0.75))]">
+        <Link
+          href={`${photo.href}?photo=${photo.id}`}
+          className="flex h-full items-center justify-center"
+        >
           {/* Flickr serves pre-sized JPEGs; next/image optimization is off. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -167,7 +178,7 @@ export const FeaturedPhoto = ({ photos }: { photos: FeaturedPhotoData[] }) => {
             alt={photo.title || photo.caption.split('\n')[0] || 'Photo'}
             fetchPriority="high"
             onLoad={preloadNeighbors}
-            className={`mx-auto h-auto max-h-[70vh] w-auto max-w-full ${
+            className={`h-auto max-h-full w-auto max-w-full ${
               stepped ? 'motion-safe:animate-[fade-in_400ms_ease-out]' : ''
             }`}
           />
@@ -201,19 +212,17 @@ export const FeaturedPhoto = ({ photos }: { photos: FeaturedPhotoData[] }) => {
           </>
         )}
       </div>
-      {(photo.title || photo.caption || photo.date) && (
-        <figcaption className="mt-3 max-w-prose space-y-1">
-          {photo.title && (
-            <p className="text-sm text-gray-200">{photo.title}</p>
-          )}
-          {photo.caption && (
-            <p className="whitespace-pre-line text-[13px] text-gray-400">
-              {photo.caption}
-            </p>
-          )}
-          {photo.date && <p className="text-xs text-gray-400">{photo.date}</p>}
-        </figcaption>
-      )}
+      <figcaption className="mx-auto mt-3 h-24 max-w-prose space-y-1 overflow-hidden text-center">
+        {photo.title && (
+          <p className="truncate text-sm text-gray-200">{photo.title}</p>
+        )}
+        {photo.caption && (
+          <p className="line-clamp-2 whitespace-pre-line text-[13px] text-gray-400">
+            {photo.caption}
+          </p>
+        )}
+        {photo.date && <p className="text-xs text-gray-400">{photo.date}</p>}
+      </figcaption>
     </figure>
   );
 };

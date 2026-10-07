@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   FeaturedPhoto,
   SLIDE_MS,
+  imageSizes,
   type FeaturedPhotoData,
 } from '../FeaturedPhoto';
 
@@ -80,6 +81,17 @@ describe('FeaturedPhoto', () => {
     expect(screen.getByText('March 3, 1998')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Next photo' }));
     expect(screen.queryByText('March 3, 1998')).toBeNull();
+  });
+
+  it('asks for an image as wide as the photo will be drawn', () => {
+    // Landscape: the page width, until 70vh x ratio is narrower.
+    expect(imageSizes(featured('w', { width: 1500, height: 1000 }))).toBe(
+      '(max-aspect-ratio: 1050/1000) calc(100vw - 2rem), calc(70vh * 1.500)',
+    );
+    // Portrait: ratio x 0.75 x page width, until 70vh binds.
+    expect(imageSizes(featured('t', { width: 1000, height: 1500 }))).toBe(
+      '(max-aspect-ratio: 933/1000) calc((100vw - 2rem) * 0.500), calc(70vh * 0.667)',
+    );
   });
 
   it('hides the arrows when there is only one photo', () => {
