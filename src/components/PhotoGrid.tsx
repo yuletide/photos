@@ -353,6 +353,24 @@ const writeInfoPref = (show: boolean) => {
   }
 };
 
+// When the lightbox closes it returns focus to the photo that opened it (so
+// Tab continues from there), and Chrome then draws its focus ring around that
+// photo. Hide the ring however it was closed (Escape included) until the
+// viewer presses Tab, which shows it again where they left off.
+const hideRestoredFocusRing = () => {
+  const el = document.activeElement;
+  if (!(el instanceof HTMLElement) || !el.closest('[data-photo-grid]')) return;
+  el.dataset.focusRestored = '';
+  const reveal = (e: Event) => {
+    if (e instanceof KeyboardEvent && e.key !== 'Tab') return;
+    delete el.dataset.focusRestored;
+    document.removeEventListener('keydown', reveal, true);
+    el.removeEventListener('blur', reveal);
+  };
+  document.addEventListener('keydown', reveal, true);
+  el.addEventListener('blur', reveal);
+};
+
 // The open photo lives in the URL (?photo=<id>), so every photo has a link
 // that can be shared or bookmarked, and the back button closes the lightbox.
 const PHOTO_PARAM = 'photo';
@@ -397,6 +415,7 @@ export const PhotoGrid = ({ photos }: { photos: FlickrPhoto[] }) => {
   );
   const index = photoId ? shown.findIndex((p) => p.id === photoId) : -1;
   const open = index >= 0;
+
   // Whether we added the history entry for the open photo; if so, closing
   // goes back to it rather than piling up entries.
   const pushedEntry = useRef(false);
@@ -441,7 +460,10 @@ export const PhotoGrid = ({ photos }: { photos: FlickrPhoto[] }) => {
 
   return (
     <>
-      <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4">
+      <div
+        data-photo-grid
+        className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4"
+      >
         {shown.map((photo, i) => (
           <a
             key={photo.id}
@@ -472,6 +494,7 @@ export const PhotoGrid = ({ photos }: { photos: FlickrPhoto[] }) => {
         on={{
           view: ({ index: viewed }) =>
             shown[viewed] && writePhotoParam(shown[viewed].id, 'replace'),
+          exited: () => requestAnimationFrame(hideRestoredFocusRing),
         }}
         // Load the current photo first; neighbors only once it has arrived,
         // so large images aren't all requested at once.

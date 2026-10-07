@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { galleryConfig } from '@/config/galleries';
 
 const linkClass =
-  'text-xs tracking-wider uppercase underline-offset-[6px] transition-colors';
+  'whitespace-nowrap text-xs tracking-wider uppercase underline-offset-[6px] transition-colors';
 const idle = 'text-gray-400 hover:text-white';
 const current = 'text-white underline decoration-gray-500';
 
@@ -33,8 +33,10 @@ const Navigation = () => {
     </Link>
   );
 
+  // When the links don't fit (phones), they wrap onto a second centered
+  // line; a label never breaks in the middle.
   return (
-    <nav className="mt-2 space-x-6">
+    <nav className="mt-2 flex flex-wrap justify-center gap-x-6 gap-y-2">
       {item('/', '/', 'All')}
       {galleryConfig.map((cat) =>
         item(`/category/${cat.slug}`, cat.slug, cat.name),

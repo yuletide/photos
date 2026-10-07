@@ -49,3 +49,9 @@ body {
     opacity: 0;
   }
 }
+
+/* See hideRestoredFocusRing in PhotoGrid. */
+[data-focus-restored]:focus,
+[data-focus-restored]:focus-visible {
+  outline: none;
+}
