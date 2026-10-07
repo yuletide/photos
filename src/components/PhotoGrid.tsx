@@ -105,12 +105,39 @@ const InfoPanelContent = ({ photo }: { photo: FlickrPhoto }) => (
 
 // Flickr's CDN can refuse large images (429 when requests come in bursts,
 // and on some iOS Safari + Private Relay setups). If a slide's image fails,
-// show the 500px version right away (already cached from the grid), then
-// upgrade in the background: 1024px first, then 2048px (or 1600px), each with
-// 1s/2s/4s backoff. No broken-image icon while that happens.
+// show the 500px version right away (already cached from the grid), then,
+// once it's the photo on screen, upgrade in the background: 1024px first,
+// then the size the screen needs, each with ~1s/2s/4s backoff. No
+// broken-image icon while that happens.
 const RETRY_DELAYS = [1000, 2000, 4000];
-// 1024px first (quick, usually allowed), then the full-resolution sizes.
-const UPGRADE_SIZES = ['l', 'k', 'h'] as const;
+const UPGRADE_SIZES = ['l', 'h', 'k'] as const;
+
+// Spread retries out (±25%) so slides that failed together don't retry in
+// the same burst.
+const jitter = (delay: number) => delay * (0.75 + Math.random() * 0.5);
+
+// The smallest size at least as wide as the photo is drawn on this screen
+// (what the browser picks from srcSet), else the largest there is.
+const neededSize = (photo: FlickrPhoto, rect: RenderSlideProps['rect']) => {
+  const width = Number(photo.width_m);
+  const height = Number(photo.height_m);
+  const drawn = Math.min(rect.width, (rect.height / height) * width);
+  const needed = drawn * (window.devicePixelRatio || 1);
+  const available = UPGRADE_SIZES.filter((size) => photo[`url_${size}`]);
+  return (
+    available.find((size) => Number(photo[`width_${size}`]) >= needed) ??
+    available[available.length - 1]
+  );
+};
+
+// 1024px first (quick, usually allowed), then the needed size if bigger.
+export const upgradeSizes = (
+  photo: FlickrPhoto,
+  rect: RenderSlideProps['rect'],
+) => {
+  const target = neededSize(photo, rect);
+  return target && target !== 'l' ? (['l', target] as const) : (['l'] as const);
+};
 
 const sizedSlide = (
   photo: FlickrPhoto,
@@ -144,7 +171,7 @@ export const loadWithRetry = (
       img.onerror = () => {
         if (attempt >= RETRY_DELAYS.length) return resolve(false);
         onRetry();
-        setTimeout(tryOnce, RETRY_DELAYS[attempt++]);
+        setTimeout(tryOnce, jitter(RETRY_DELAYS[attempt++]));
       };
       img.src = src;
     };
@@ -167,16 +194,29 @@ const RetryingSlide = ({
   const [retries, setRetries] = useState(0);
   const [upgrading, setUpgrading] = useState(false);
 
+  // Only the photo on screen upgrades; neighbors keep the 500px version until
+  // they're shown, so they don't compete with it for Flickr's rate limit.
+  const isCurrent = offset === 0;
+  // Width of the best version loaded so far, so coming back to a slide picks
+  // up where its upgrade left off instead of stepping back down.
+  const upgradedWidth = useRef(0);
+  // Rotating or toggling the info panel resizes the slide; re-pick the size.
+  const { width: rectWidth, height: rectHeight } = rect;
+
   useEffect(() => {
-    if (!failed || !photo) return;
+    if (!failed || !photo || !isCurrent) return;
     let cancelled = false;
     (async () => {
       setUpgrading(true);
-      let upgradedAny = false;
-      for (const size of UPGRADE_SIZES) {
+      for (const size of upgradeSizes(photo, {
+        width: rectWidth,
+        height: rectHeight,
+      })) {
         const candidate = sizedSlide(photo, size, slide.alt);
+        const width = Number(photo[`width_${size}`]);
         if (
           candidate &&
+          width > upgradedWidth.current &&
           (await loadWithRetry(
             candidate.src,
             () => cancelled,
@@ -184,20 +224,19 @@ const RetryingSlide = ({
           ))
         ) {
           if (cancelled) return;
-          upgradedAny = true;
+          upgradedWidth.current = width;
           setUpgraded(candidate);
-          if (size !== 'l') break; // Full resolution: done.
         }
       }
       if (!cancelled) {
-        setTerminalFailure(!upgradedAny);
+        setTerminalFailure(upgradedWidth.current === 0);
         setUpgrading(false);
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [failed, photo, slide.alt]);
+  }, [failed, photo, slide.alt, isCurrent, rectWidth, rectHeight]);
 
   if (!photo) return undefined;
   const shown =
@@ -315,6 +354,24 @@ const writeInfoPref = (show: boolean) => {
   }
 };
 
+// When the lightbox closes it returns focus to the photo that opened it (so
+// Tab continues from there), and Chrome then draws its focus ring around that
+// photo. Hide the ring however it was closed (Escape included) until the
+// viewer presses Tab, which shows it again where they left off.
+const hideRestoredFocusRing = () => {
+  const el = document.activeElement;
+  if (!(el instanceof HTMLElement) || !el.closest('[data-photo-grid]')) return;
+  el.dataset.focusRestored = '';
+  const reveal = (e: Event) => {
+    if (e instanceof KeyboardEvent && e.key !== 'Tab') return;
+    delete el.dataset.focusRestored;
+    document.removeEventListener('keydown', reveal, true);
+    el.removeEventListener('blur', reveal);
+  };
+  document.addEventListener('keydown', reveal, true);
+  el.addEventListener('blur', reveal);
+};
+
 // The open photo lives in the URL (?photo=<id>), so every photo has a link
 // that can be shared or bookmarked, and the back button closes the lightbox.
 const PHOTO_PARAM = 'photo';
@@ -359,6 +416,7 @@ export const PhotoGrid = ({ photos }: { photos: FlickrPhoto[] }) => {
   );
   const index = photoId ? shown.findIndex((p) => p.id === photoId) : -1;
   const open = index >= 0;
+
   // Whether we added the history entry for the open photo; if so, closing
   // goes back to it rather than piling up entries.
   const pushedEntry = useRef(false);
@@ -405,7 +463,7 @@ export const PhotoGrid = ({ photos }: { photos: FlickrPhoto[] }) => {
     <>
       {/* Justified rows (see .justified-rows in globals.css): photos read left
           to right, each row the same height, every photo uncropped. */}
-      <div className="justified-rows">
+      <div data-photo-grid className="justified-rows">
         {shown.map((photo, i) => (
           <a
             key={photo.id}
@@ -441,6 +499,7 @@ export const PhotoGrid = ({ photos }: { photos: FlickrPhoto[] }) => {
         on={{
           view: ({ index: viewed }) =>
             shown[viewed] && writePhotoParam(shown[viewed].id, 'replace'),
+          exited: () => requestAnimationFrame(hideRestoredFocusRing),
         }}
         // Load the current photo first; neighbors only once it has arrived,
         // so large images aren't all requested at once.

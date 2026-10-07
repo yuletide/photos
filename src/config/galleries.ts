@@ -35,6 +35,12 @@ export const galleryConfig: GalleryCategory[] = [
     tags: ['botanical', 'gallery'],
   },
   {
+    name: 'Wildlife',
+    slug: 'wildlife',
+    photosetIds: [],
+    tags: ['wildlife', 'gallery'],
+  },
+  {
     name: 'Best Of',
     slug: 'best-of',
     photosetIds: [

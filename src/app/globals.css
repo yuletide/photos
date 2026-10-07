@@ -73,3 +73,9 @@ body {
     --row-height: 300px;
   }
 }
+
+/* See hideRestoredFocusRing in PhotoGrid. */
+[data-focus-restored]:focus,
+[data-focus-restored]:focus-visible {
+  outline: none;
+}
