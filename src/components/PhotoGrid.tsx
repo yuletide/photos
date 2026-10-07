@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import {
+  type CSSProperties,
   useEffect,
   useRef,
   useState,
@@ -460,20 +461,24 @@ export const PhotoGrid = ({ photos }: { photos: FlickrPhoto[] }) => {
 
   return (
     <>
-      <div
-        data-photo-grid
-        className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4"
-      >
+      {/* Justified rows (see .justified-rows in globals.css): photos read left
+          to right, each row the same height, every photo uncropped. */}
+      <div data-photo-grid className="justified-rows">
         {shown.map((photo, i) => (
           <a
             key={photo.id}
+            style={
+              {
+                '--ratio': Number(photo.width_m) / Number(photo.height_m) || 1,
+              } as CSSProperties
+            }
             href={toSlide(photo).src}
             onClick={(e) => {
               if (!isPlainClick(e)) return;
               e.preventDefault();
               openPhoto(photo);
             }}
-            className="block break-inside-avoid hover:opacity-80 transition-opacity"
+            className="block hover:opacity-80 transition-opacity"
           >
             <Image
               src={photo.url_m!}

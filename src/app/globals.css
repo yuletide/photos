@@ -43,6 +43,37 @@ body {
   }
 }
 
+/* Photo grid. Phones: one photo per row, full width. From tablet width:
+   justified rows, where each photo grows in proportion to its aspect ratio
+   (--ratio, set inline), so every photo in a row ends up the same height and
+   nothing is cropped. Rows read left to right. The ::after spacer soaks up
+   the slack on the last row so it isn't stretched. */
+.justified-rows {
+  display: grid;
+  gap: 1rem;
+}
+@media (min-width: 48rem) {
+  .justified-rows {
+    --row-height: 240px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .justified-rows > * {
+    flex-grow: var(--ratio);
+    flex-basis: calc(var(--ratio) * var(--row-height));
+  }
+  .justified-rows::after {
+    content: '';
+    flex-grow: 1000000;
+  }
+}
+@media (min-width: 80rem) {
+  .justified-rows {
+    --row-height: 300px;
+  }
+}
+
 /* See hideRestoredFocusRing in PhotoGrid. */
 [data-focus-restored]:focus,
 [data-focus-restored]:focus-visible {
