@@ -43,7 +43,12 @@ const shuffle = async <T,>(items: T[]) => {
 const Home = async () => {
   const [photosets, published] = await Promise.all([
     getPhotosets().then((sets) => filterPhotosetsByConfig(sets)),
-    getPublishedPhotos(),
+    // One album or category failing to load drops the featured photo, not
+    // the whole page: the album grid only needs the list above.
+    getPublishedPhotos().catch((error) => {
+      console.error('Featured photos unavailable:', error);
+      return [];
+    }),
   ]);
   const featured = await shuffle(
     published
