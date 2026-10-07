@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { getPhotoset, getPhotosByTags } from '@/lib/flickr';
-import { isPublishedPhoto } from '../published';
+import { getPublishedPhotos, isPublishedPhoto } from '../published';
 
 vi.mock('@/lib/flickr', () => ({
   getPhotoset: vi.fn(),
@@ -26,5 +26,24 @@ describe('isPublishedPhoto', () => {
 
   it('rejects photos that are not on the site', async () => {
     await expect(isPublishedPhoto('elsewhere')).resolves.toBe(false);
+  });
+});
+
+describe('getPublishedPhotos', () => {
+  it('lists each photo once, albums first, with the page it is on', async () => {
+    vi.mocked(getPhotoset).mockResolvedValue({
+      title: 'Album',
+      photos: photos('shared', 'in-album'),
+    });
+    vi.mocked(getPhotosByTags).mockResolvedValue(photos('shared', 'tagged'));
+
+    const published = await getPublishedPhotos();
+    const ids = published.map(({ photo }) => photo.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(ids.indexOf('in-album')).toBeLessThan(ids.indexOf('tagged'));
+    const href = (id: string) =>
+      published.find(({ photo }) => photo.id === id)?.href;
+    expect(href('shared')).toMatch(/^\/sets\//); // album wins
+    expect(href('tagged')).toMatch(/^\/category\//);
   });
 });

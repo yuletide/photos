@@ -39,7 +39,7 @@ export const plainCaption = (html = '') => {
   return CAMERA_DEFAULTS.test(text) ? '' : text;
 };
 
-const formatDate = (photo: FlickrPhoto) => {
+export const formatDate = (photo: FlickrPhoto) => {
   if (!photo.datetaken || Number(photo.datetakenunknown)) return '';
   // Flickr's taken date is camera local time with no zone; format it as-is.
   const date = new Date(`${photo.datetaken.replace(' ', 'T')}Z`);
