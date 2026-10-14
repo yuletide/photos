@@ -404,6 +404,14 @@ const writePhotoParam = (photoId: string | null, mode: 'push' | 'replace') => {
 const isPlainClick = (e: MouseEvent) =>
   e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
 
+/**
+ * Renders photos in input order, omitting entries without a medium image URL.
+ * Photos fill one row each below 48rem viewport width and form uncropped,
+ * justified rows on wider screens, without stretching the last row.
+ * Unmodified primary clicks open a lightbox synced with the `photo` URL
+ * parameter and browser history; other clicks follow the largest image link.
+ * The info panel preference is saved in local storage when available.
+ */
 export const PhotoGrid = ({ photos }: { photos: FlickrPhoto[] }) => {
   // Whether the photo on screen has loaded; neighbors preload only after.
   const [currentLoaded, setCurrentLoaded] = useState(false);
