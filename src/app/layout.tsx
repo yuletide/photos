@@ -5,9 +5,8 @@ import { ReactNode } from 'react';
 import { Analytics } from '@vercel/analytics/next';
 import { AutoHideHeader } from '@/components/AutoHideHeader';
 import Navigation from '@/components/Navigation';
+import { SITE_NAME, SITE_URL } from '@/lib/share';
 import './globals.css';
-
-const SITE_NAME = 'Alex Yule Photos';
 
 const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
 const geistMono = Geist_Mono({
@@ -16,6 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: { default: SITE_NAME, template: `%s · ${SITE_NAME}` },
   description: 'Photographs by Alex Yule.',
 };

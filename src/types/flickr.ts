@@ -44,6 +44,9 @@ export interface FlickrPhotoset {
     url_m: string;
     height_m: number;
     width_m: number;
+    url_l?: string;
+    height_l?: number;
+    width_l?: number;
   };
 }
 
